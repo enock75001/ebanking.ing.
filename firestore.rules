@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * CORE PHILOSOPHY
+     * This ruleset implements a strict Path-Based Ownership model.
+     * Users can only access their own documents located under /users/{userId}.
+     */
+
+    // --- HELPER FUNCTIONS ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // --- RULES ---
+
+    match /users/{userId} {
+      allow get, list, create, update, delete: if isOwner(userId);
+
+      match /bankAccounts/{bankAccountId} {
+        allow get, list, create, update, delete: if isOwner(userId);
+
+        match /cards/{cardId} {
+          allow get, list, create, update, delete: if isOwner(userId);
+        }
+
+        match /transactions/{transactionId} {
+          allow get, list, create, update, delete: if isOwner(userId);
+        }
+      }
+    }
+  }
+}

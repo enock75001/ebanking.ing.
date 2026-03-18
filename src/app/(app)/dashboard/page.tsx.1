@@ -1,0 +1,203 @@
+
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { ArrowUpRight, ArrowDownLeft, AlertTriangle, MapPin, User, Building, Clock, ShieldAlert } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+
+const transactions = [
+  { id: '1', date: '2024-05-20', description: 'Salary Deposit', amount: 3500.00, type: 'credit' },
+  { id: '2', date: '2024-05-19', description: 'Grocery Store', amount: -75.50, type: 'debit' },
+  { id: '3', date: '2024-05-18', description: 'Online Shopping', amount: -120.00, type: 'debit' },
+  { id: '4', date: '2024-05-17', description: 'Rent Payment', amount: -1200.00, type: 'debit' },
+  { id: '5', date: '2024-05-16', description: 'Stock Dividend', amount: 55.20, type: 'credit' },
+];
+
+export default function DashboardPage() {
+  const [lastLogin, setLastLogin] = useState<string | null>(null);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+
+  useEffect(() => {
+    // This will only run on the client to avoid hydration mismatch
+    setLastLogin(new Date().toLocaleString('fr-BE'));
+    // Show the alert when the page loads
+    setIsAlertOpen(true);
+  }, []);
+
+  return (
+    <TooltipProvider>
+      <div className="space-y-8">
+        <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <div className="flex justify-center mb-4">
+                <ShieldAlert className="h-12 w-12 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-center">Compte Bloqué</AlertDialogTitle>
+              <AlertDialogDescription className="text-center">
+                Remplissez les conditions pour le déblocage.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={() => setIsAlertOpen(false)} className="w-full">
+                OK
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <header>
+          <h1 className="text-3xl font-bold tracking-tight font-headline">Tableau de bord</h1>
+          <p className="text-muted-foreground">
+            Bienvenue, Jane ! Voici votre aperçu financier.
+          </p>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Solde</CardTitle>
+                        <CardDescription>BE12 3456 7890 1234</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-4xl font-bold text-blue-600">€ 470,000.00</p>
+                    </CardContent>
+                </Card>
+
+                 <Card>
+                    <CardHeader>
+                    <CardTitle>Transactions Récentes</CardTitle>
+                    <CardDescription>Vos 5 dernières transactions.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                    <Table>
+                        <TableHeader>
+                        <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead className="text-right">Montant</TableHead>
+                            <TableHead>Statut</TableHead>
+                        </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                        {transactions.map((t) => (
+                            <TableRow key={t.id}>
+                            <TableCell>{t.date}</TableCell>
+                            <TableCell className="font-medium">{t.description}</TableCell>
+                            <TableCell className={`text-right font-medium ${t.type === 'credit' ? 'text-green-600' : 'text-destructive'}`}>
+                                €{t.amount.toLocaleString('fr-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </TableCell>
+                            <TableCell>
+                                <Badge variant={t.type === 'credit' ? 'secondary' : 'destructive'}>
+                                {t.type === 'credit' ? <ArrowUpRight className="mr-1 h-3 w-3"/> : <ArrowDownLeft className="mr-1 h-3 w-3"/>}
+                                {t.type}
+                                </Badge>
+                            </TableCell>
+                            </TableRow>
+                        ))}
+                        </TableBody>
+                    </Table>
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="space-y-8">
+                <Card>
+                    <CardHeader>
+                    <CardTitle>Informations</CardTitle>
+                    <CardDescription>Détails de votre compte.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-start justify-between space-x-4 p-3 rounded-md bg-muted/50">
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <User className="h-5 w-5 text-muted-foreground" />
+                                </TooltipTrigger>
+                                <TooltipContent>Propriétaire</TooltipContent>
+                            </Tooltip>
+                            <div className="text-right">
+                                <p className="font-semibold">Jane Doe</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start justify-between space-x-4 p-3 rounded-md bg-muted/50">
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <Building className="h-5 w-5 text-muted-foreground" />
+                                </TooltipTrigger>
+                                <TooltipContent>Gestionnaire</TooltipContent>
+                            </Tooltip>
+                            <div className="text-right">
+                                <p className="font-semibold">ING Belgium SA/NV</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start justify-between space-x-4 p-3 rounded-md bg-muted/50">
+                            <Tooltip>
+                                <TooltipTrigger>
+                                     <MapPin className="h-5 w-5 text-muted-foreground" />
+                                </TooltipTrigger>
+                                <TooltipContent>Localisation</TooltipContent>
+                            </Tooltip>
+                            <div className="text-right">
+                                <p className="font-semibold">Bruxelles-Belgique</p>
+                            </div>
+                        </div>
+                         <div className="flex items-start justify-between space-x-4 p-3 rounded-md bg-muted/50">
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <Clock className="h-5 w-5 text-muted-foreground" />
+                                </TooltipTrigger>
+                                <TooltipContent>Dernière connexion</TooltipContent>
+                            </Tooltip>
+                            <div className="text-right">
+                                <p className="font-semibold">{lastLogin || 'Loading...'}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Statut du Compte</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center gap-3 p-3 rounded-md bg-destructive/10 border border-destructive/50 text-destructive font-medium animate-pulse">
+                            <AlertTriangle className="h-5 w-5"/>
+                            <p className="font-bold">Votre compte est bloqué.</p>
+                        </div>
+                        <div className="flex items-center gap-3 p-3 rounded-md bg-destructive/10 border border-destructive/50 text-destructive font-medium">
+                            <AlertTriangle className="h-5 w-5"/>
+                            <p>Frais de déblocage: 5000€</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+      </div>
+    </TooltipProvider>
+  );
+}

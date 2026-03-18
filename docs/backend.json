@@ -1,0 +1,333 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user's profile information, linked to an external authentication system. Does not store sensitive authentication credentials like passwords.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "externalAuthId": {
+          "type": "string",
+          "description": "Identifier for the user in the external authentication system. (Relationship: External Auth 1:1 UserProfile)"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user, used for communication.",
+          "format": "email"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "externalAuthId",
+        "firstName",
+        "lastName",
+        "email",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "BankAccount": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BankAccount",
+      "type": "object",
+      "description": "Represents a user's bank account with balance and other details.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the BankAccount entity."
+        },
+        "accountNumber": {
+          "type": "string",
+          "description": "The national bank account number."
+        },
+        "iban": {
+          "type": "string",
+          "description": "The International Bank Account Number (IBAN) for the account."
+        },
+        "balance": {
+          "type": "number",
+          "description": "The current monetary balance of the account."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the account balance (e.g., EUR, USD)."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who owns this bank account. (Relationship: UserProfile 1:N BankAccount)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the bank account was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the bank account details were last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "accountNumber",
+        "iban",
+        "balance",
+        "currency",
+        "userId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Card": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Card",
+      "type": "object",
+      "description": "Represents a bank card associated with a bank account. Only stores display information, not full card numbers or CVVs for security.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Card entity."
+        },
+        "cardNumberLastFour": {
+          "type": "string",
+          "description": "The last four digits of the card number, used for identification and display."
+        },
+        "cardHolderName": {
+          "type": "string",
+          "description": "The name of the cardholder as it appears on the card."
+        },
+        "expirationDate": {
+          "type": "string",
+          "description": "The expiration date of the card in MM/YY format."
+        },
+        "cardType": {
+          "type": "string",
+          "description": "The type of card (e.g., 'Visa Debit', 'Mastercard Credit')."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the card (e.g., 'Active', 'Blocked', 'Cancelled')."
+        },
+        "bankAccountId": {
+          "type": "string",
+          "description": "Reference to the BankAccount this card is associated with. (Relationship: BankAccount 1:N Card)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the card record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the card record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "cardNumberLastFour",
+        "cardHolderName",
+        "expirationDate",
+        "cardType",
+        "status",
+        "bankAccountId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Transaction": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Transaction",
+      "type": "object",
+      "description": "Records details of a financial transaction, such as a transfer, deposit, or withdrawal. This entity specifically addresses the user's request to persist transfers.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Transaction entity."
+        },
+        "transactionType": {
+          "type": "string",
+          "description": "The type of financial transaction (e.g., 'Transfer', 'Deposit', 'Withdrawal')."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The monetary amount of the transaction."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the transaction amount (e.g., EUR, USD)."
+        },
+        "description": {
+          "type": "string",
+          "description": "An optional description or memo for the transaction."
+        },
+        "transactionDate": {
+          "type": "string",
+          "description": "The date and time when the transaction occurred or was initiated.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the transaction (e.g., 'Pending', 'Completed', 'Failed', 'Cancelled')."
+        },
+        "senderAccountId": {
+          "type": "string",
+          "description": "Reference to the BankAccount from which the funds were sent. (Relationship: BankAccount 1:N Transaction as sender)"
+        },
+        "beneficiaryName": {
+          "type": "string",
+          "description": "The name of the individual or entity receiving the funds."
+        },
+        "beneficiaryIban": {
+          "type": "string",
+          "description": "The IBAN of the beneficiary account."
+        },
+        "receiverAccountId": {
+          "type": "string",
+          "description": "Optional reference to the BankAccount within the same system that received the funds, if it's an internal transfer. (Relationship: BankAccount 1:N Transaction as receiver)",
+          "format": "optional"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the transaction record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the transaction record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "transactionType",
+        "amount",
+        "currency",
+        "transactionDate",
+        "status",
+        "senderAccountId",
+        "beneficiaryName",
+        "beneficiaryIban",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user profile information. The `userId` in the path corresponds to `request.auth.uid` and `UserProfile.externalAuthId`. This collection acts as the root for all user-specific data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user, matching `request.auth.uid`."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/bankAccounts/{bankAccountId}",
+        "definition": {
+          "entityName": "BankAccount",
+          "schema": {
+            "$ref": "#/backend/entities/BankAccount"
+          },
+          "description": "Stores bank account details for a specific user. The `userId` field in the document must match the `{userId}` in the path, ensuring Authorization Independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns this bank account."
+            },
+            {
+              "name": "bankAccountId",
+              "description": "The unique identifier for the bank account."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/bankAccounts/{bankAccountId}/cards/{cardId}",
+        "definition": {
+          "entityName": "Card",
+          "schema": {
+            "$ref": "#/backend/entities/Card"
+          },
+          "description": "Stores card information associated with a specific bank account. Includes denormalized `userId` for Authorization Independence (must match the `{userId}` in the path) and `bankAccountId` (must match the `{bankAccountId}` in the path).",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns the associated bank account."
+            },
+            {
+              "name": "bankAccountId",
+              "description": "The unique identifier of the bank account this card belongs to."
+            },
+            {
+              "name": "cardId",
+              "description": "The unique identifier for the card."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/bankAccounts/{bankAccountId}/transactions/{transactionId}",
+        "definition": {
+          "entityName": "Transaction",
+          "schema": {
+            "$ref": "#/backend/entities/Transaction"
+          },
+          "description": "Records details of financial transactions (virements) for a specific bank account. Includes denormalized `userId` for Authorization Independence (must match the `{userId}` in the path). The `senderAccountId` or `receiverAccountId` within the document must match the `{bankAccountId}` in the path, making it self-contained for security rules.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns the associated bank account."
+            },
+            {
+              "name": "bankAccountId",
+              "description": "The unique identifier of the bank account relevant to this transaction (either as sender or receiver)."
+            },
+            {
+              "name": "transactionId",
+              "description": "The unique identifier for the transaction."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to be highly secure, scalable, and debuggable, adhering strictly to the core design principles. All data is primarily organized under a user-centric hierarchy, starting with `/users/{userId}`, which aligns with path-based ownership for private user data.\n\n**Authorization Independence via Denormalization (CRITICAL):**\nThis principle is achieved by denormalizing the `userId` (representing the owner) into all subcollection documents. Specifically:\n\n1.  **`/users/{userId}` (UserProfile):** The `UserProfile` document's `externalAuthId` field is directly linked to `request.auth.uid` and the `{userId}` wildcard in the path, making its ownership immediately clear without external lookups.\n2.  **`/users/{userId}/bankAccounts/{bankAccountId}` (BankAccount):** The `BankAccount` document explicitly includes a `userId` field which must match the `{userId}` in the path. This eliminates the need for `get()` operations to check parent ownership.\n3.  **`/users/{userId}/bankAccounts/{bankAccountId}/cards/{cardId}` (Card):** The `Card` document includes a denormalized `userId` field. This `userId` must match the `{userId}` in the path and `request.auth.uid`. Additionally, the `bankAccountId` in the document must match the `{bankAccountId}` in the path, ensuring the card belongs to the specific bank account without hierarchical dependencies.\n4.  **`/users/{userId}/bankAccounts/{bankAccountId}/transactions/{transactionId}` (Transaction):** The `Transaction` document includes a denormalized `userId` field, which must match the `{userId}` in the path and `request.auth.uid`. Furthermore, the `senderAccountId` or `receiverAccountId` within the transaction document must match the `{bankAccountId}` in the path. This allows for direct authorization checks at the `Transaction` document level, ensuring that a user can only access transactions associated with their own bank accounts directly from the document's fields.\n\nThis denormalization strategy completely eliminates the need for `get()` calls in security rules for ownership checks, making rules atomic, simpler to write, and much more efficient, especially for batch operations.\n\n**QAPs (Rules are not Filters):**\nThe structural segregation and path-based ownership inherently support Query-Able Paths (QAPs). Any `list` operation performed on a collection at any level of the hierarchy (`/users`, `/users/{userId}/bankAccounts`, `/users/{userId}/bankAccounts/{bankAccountId}/cards`, `/users/{userId}/bankAccounts/{bankAccountId}/transactions`) will implicitly be scoped by the `{userId}` in the path, which is enforced by the `request.auth.uid` check. Since the `userId` is always part of the path (or directly referenced in the document for root collections), Firestore's security rules can ensure that `list` operations only return data owned by the authenticated user, thus preventing unintentional data exposure and eliminating the need for client-side filtering or complex server-side rule logic to mimic filtering.\n\n**Overall Benefits:**\n-   **Security:** Clear, explicit ownership via path and denormalized `userId` in every document.\n-   **Scalability:** No `get()` calls in rules mean fewer read operations and better performance.\n-   **Debuggability:** Rules are straightforward (`request.auth.uid == resource.data.userId`), making it easy to understand and troubleshoot access control issues.\n-   **Atomic Operations:** Parent and child documents can be created/updated in batches or transactions without complex rule interdependencies."
+  }
+}
