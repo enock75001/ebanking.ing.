@@ -46,14 +46,14 @@
   @apply shadow-[0_20px_40px_rgba(0,0,0,0.08)] -translate-y-1;
 }
 
-/* Filigrane Lion - Opacité légèrement réduite pour plus de subtilité */
+/* Filigrane Lion - Opacité réduite à 20% pour une intégration très subtile */
 .watermark-lion {
   position: fixed;
   bottom: 0;
   right: 0;
   width: 600px;
   height: 600px;
-  opacity: 0.85; /* Légère réduction d'opacité comme demandé */
+  opacity: 0.2; /* Opacité à 20% demandée */
   pointer-events: none;
   z-index: 0;
   display: flex;
