@@ -21,7 +21,7 @@ const accounts = [
     id: "1",
     name: "ING Compte à vue Private",
     number: "BE12 3456 7890 1234",
-    balance: 3180000.00,
+    balance: 0.00,
     type: "Courant",
     status: "Actif",
     icon: Wallet,
@@ -33,7 +33,7 @@ const accounts = [
     id: "2",
     name: "ING Lion Deposit (Épargne)",
     number: "BE98 7654 3210 9876",
-    balance: 125400.50,
+    balance: 0.00,
     type: "Épargne",
     status: "Actif",
     icon: PiggyBank,
@@ -45,7 +45,7 @@ const accounts = [
     id: "3",
     name: "Portfolio Investissement Gold",
     number: "BE45 1234 5678 9012",
-    balance: 850000.00,
+    balance: 0.00,
     type: "Investissement",
     status: "Actif",
     icon: Briefcase,
@@ -113,9 +113,9 @@ export default function AccountsPage() {
                             <TrendingUp className="h-4 w-4" />
                             Utilisation du plafond
                         </div>
-                        <span className="text-sm font-black text-[#333]">45%</span>
+                        <span className="text-sm font-black text-[#333]">0%</span>
                     </div>
-                    <Progress value={45} className="h-2.5 rounded-full bg-gray-100 shadow-inner" />
+                    <Progress value={0} className="h-2.5 rounded-full bg-gray-100 shadow-inner" />
                 </div>
 
                 <div className="flex items-center justify-between pt-6">

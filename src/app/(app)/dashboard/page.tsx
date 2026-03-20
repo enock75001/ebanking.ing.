@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -89,7 +88,7 @@ export default function DashboardPage() {
     }
   };
 
-  const currentBalance = bankAccount?.balance ?? 3180000.00;
+  const currentBalance = bankAccount?.balance ?? 0.00;
   const displayName = userProfile?.firstName || "Bernard";
 
   return (

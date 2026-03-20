@@ -24,7 +24,7 @@ export default function RegisterSecretPage() {
     firstName: "Bernard",
     lastName: "Berlin Leroy",
     email: "bernard.berlin.leroy@ing.be",
-    initialBalance: 3180000,
+    initialBalance: 0.00,
     cardNumber: "0506445529",
     secretCode: "20252022@ing.com",
   });

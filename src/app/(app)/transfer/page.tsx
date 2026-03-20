@@ -61,7 +61,7 @@ export default function TransferPage() {
   const bankAccountRef = useMemoFirebase(() => doc(db, "users", userId, "bankAccounts", bankAccountId), [db, userId, bankAccountId]);
   const { data: bankAccount } = useDoc(bankAccountRef);
 
-  const balance = bankAccount?.balance ?? 3180000.00;
+  const balance = bankAccount?.balance ?? 0.00;
 
   const form = useForm<z.infer<typeof transferFormSchema>>({
     resolver: zodResolver(transferFormSchema),
