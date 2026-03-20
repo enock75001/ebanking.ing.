@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
@@ -6,25 +7,26 @@ import { doc } from "firebase/firestore";
 import { 
   ShieldAlert, 
   ArrowLeft, 
-  Download, 
-  Printer, 
-  Share2, 
   Clock, 
-  CheckCircle2, 
   FileText, 
   ShieldCheck, 
   Info,
   Lock,
-  Globe,
   Building2,
   AlertCircle,
   Trash2,
   FileDown,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  Printer,
+  Share2,
+  Globe,
+  MapPin,
+  Landmark,
+  User
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
@@ -55,7 +57,7 @@ export default function TransactionDetailsPage() {
     setIsDeleting(true);
     deleteDocumentNonBlocking(transactionRef);
     toast({
-      title: "Transaction supprimée",
+      title: "Virement supprimé",
       description: "L'opération a été retirée de votre historique.",
     });
     router.replace("/dashboard");
@@ -67,7 +69,7 @@ export default function TransactionDetailsPage() {
       setIsDownloading(false);
       toast({
         title: "Reçu généré",
-        description: "Le reçu officiel (format PDF) a été téléchargé.",
+        description: "Le document PDF a été enregistré.",
       });
     }, 2000);
   };
@@ -84,10 +86,9 @@ export default function TransactionDetailsPage() {
     return (
       <div className="text-center py-20 animate-in fade-in zoom-in-95 duration-500">
         <AlertCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-2xl font-bold">Transaction non trouvée</h2>
-        <p className="text-muted-foreground mt-2">Cette opération n'existe pas ou a été supprimée.</p>
+        <h2 className="text-2xl font-bold">Ordre non trouvé</h2>
         <Button onClick={() => router.back()} className="mt-6 rounded-xl font-bold px-8">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Retour au tableau de bord
+          <ArrowLeft className="mr-2 h-4 w-4" /> Retour
         </Button>
       </div>
     );
@@ -96,87 +97,84 @@ export default function TransactionDetailsPage() {
   const isFailed = transaction.status === "Failed";
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-24 animate-in fade-in duration-700">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <Button variant="ghost" onClick={() => router.back()} className="font-bold hover:text-primary transition-all w-fit">
+    <div className="max-w-5xl mx-auto space-y-10 pb-24 animate-in fade-in duration-700">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <Button variant="ghost" onClick={() => router.back()} className="font-bold hover:text-primary transition-all p-0">
           <ArrowLeft className="mr-2 h-5 w-5" /> Retour à l'historique
         </Button>
-        <div className="flex gap-3">
+        <div className="flex gap-4">
           <Button 
-            variant="destructive" 
+            variant="outline" 
             onClick={handleDelete} 
             disabled={isDeleting}
-            className="rounded-xl border-2 font-bold h-11 px-6 shadow-sm hover:shadow-md transition-all"
+            className="rounded-xl border-2 font-bold h-12 px-6 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all"
           >
-            <Trash2 className="mr-2 h-4 w-4" /> {isDeleting ? "Suppression..." : "Supprimer l'ordre"}
+            <Trash2 className="mr-2 h-4 w-4" /> {isDeleting ? "En cours..." : "Supprimer"}
           </Button>
           <Button 
             variant="default" 
             onClick={handleDownload}
             disabled={isDownloading}
-            className="rounded-xl font-bold h-11 px-6 shadow-lg shadow-primary/10 transition-all hover:scale-[1.02]"
+            className="rounded-xl font-black h-12 px-8 shadow-xl shadow-primary/10 transition-all hover:scale-[1.02]"
           >
-            <FileDown className="mr-2 h-4 w-4" /> {isDownloading ? "Génération..." : "Télécharger Reçu PDF"}
+            <FileDown className="mr-2 h-5 w-5" /> {isDownloading ? "Génération..." : "Télécharger le reçu PDF"}
           </Button>
         </div>
       </header>
 
-      {/* Alerte de Sécurité si Suspendu */}
       {isFailed && (
-        <Card className="border-none shadow-2xl bg-destructive/5 ring-2 ring-destructive/20 overflow-hidden relative animate-in slide-in-from-top-4 duration-700">
-          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-            <ShieldAlert className="h-32 w-32 text-destructive" />
+        <Card className="border-none shadow-2xl bg-red-50 ring-2 ring-red-100 overflow-hidden relative animate-in slide-in-from-top-6 duration-700">
+          <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
+            <ShieldAlert className="h-40 w-40 text-red-600" />
           </div>
-          <CardContent className="p-8 flex flex-col md:flex-row items-center gap-8 relative z-10">
-            <div className="bg-destructive text-white p-6 rounded-[2rem] shadow-xl shadow-destructive/20 animate-pulse">
-              <Lock className="h-12 w-12" />
+          <CardContent className="p-10 flex flex-col md:flex-row items-center gap-10 relative z-10">
+            <div className="bg-red-600 text-white p-8 rounded-[2.5rem] shadow-2xl shadow-red-200 animate-pulse">
+              <Lock className="h-14 w-14" />
             </div>
-            <div className="space-y-2 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
-                <Badge variant="destructive" className="font-black uppercase tracking-widest text-[10px] px-3 py-1">ALERTE SÉCURITÉ #402</Badge>
-              </div>
-              <h2 className="text-3xl font-black text-destructive uppercase tracking-tighter leading-none">Virement Suspendu</h2>
-              <p className="text-lg font-bold text-destructive/80 leading-tight max-w-xl">
-                Votre ordre a été intercepté par <strong>ING SafeGuard</strong> pour un audit de conformité. 
-                Veuillez consulter vos emails pour valider l'opération.
+            <div className="space-y-3 text-center md:text-left">
+              <Badge variant="destructive" className="font-black uppercase tracking-widest text-[10px] px-4 py-1.5 mb-2">Avis de suspension immédiate</Badge>
+              <h2 className="text-4xl font-black text-red-600 tracking-tighter leading-none">Virement Suspendu par SafeGuard</h2>
+              <p className="text-xl font-bold text-red-700/80 leading-snug max-w-2xl">
+                Cet ordre a été intercepté par notre audit de conformité Private Banking. 
+                Une validation d'identité est requise pour libérer les fonds.
               </p>
             </div>
           </CardContent>
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* REÇU OFFICIEL (Le Corps du Document) */}
-        <div className="lg:col-span-2 space-y-8">
-          <Card className="premium-card border-none overflow-hidden relative shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]">
-            <div className="absolute top-0 left-0 w-full h-3 bg-primary" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        {/* REÇU OFFICIEL COMPLET */}
+        <div className="lg:col-span-2 space-y-10">
+          <Card className="premium-card border-none overflow-hidden relative shadow-[0_40px_80px_-15px_rgba(0,0,0,0.12)]">
+            <div className="absolute top-0 left-0 w-full h-4 bg-primary" />
             
-            <CardHeader className="bg-gray-50/50 pb-8 border-b border-gray-100 px-10 pt-10">
+            <CardHeader className="bg-gray-50/50 pb-10 border-b border-gray-100 px-12 pt-12">
               <div className="flex justify-between items-start">
-                <div className="space-y-2">
-                  <div className="bg-white p-2.5 rounded-xl shadow-sm border border-gray-100 inline-block">
-                    <Image src="https://i.imgur.com/WWZ10oQ.png" alt="ING Logo" width={80} height={32} className="opacity-90" />
+                <div className="space-y-3">
+                  <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 inline-block">
+                    <Image src="https://i.imgur.com/WWZ10oQ.png" alt="ING Logo" width={90} height={36} className="opacity-90" />
                   </div>
-                  <h3 className="text-3xl font-black text-[#333] tracking-tight">Reçu de Virement</h3>
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Private Banking • Document Certifié</p>
+                  <h3 className="text-4xl font-black text-[#333] tracking-tighter">Avis de Virement</h3>
+                  <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.3em]">Document Certifié • Private Banking Gold</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">RÉFÉRENCE UNIQUE</p>
-                  <p className="text-sm font-mono font-bold text-[#333] bg-white px-3 py-1 rounded-lg border border-gray-100 shadow-sm">#TRX-{transaction.id.slice(-10).toUpperCase()}</p>
+                <div className="text-right space-y-2">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">RÉFÉRENCE ARCHIVE</p>
+                  <p className="text-sm font-mono font-bold text-[#333] bg-white px-4 py-1.5 rounded-xl border border-gray-100 shadow-sm inline-block">#TRX-{transaction.id.slice(-10).toUpperCase()}</p>
                 </div>
               </div>
             </CardHeader>
 
             <CardContent className="p-0">
-              {/* Montant Principal */}
-              <div className="p-10 text-center bg-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-primary/5 pointer-events-none blur-3xl opacity-50" />
-                <div className="relative z-10">
-                  <p className="text-[12px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-2">Montant Net de l'ordre</p>
-                  <p className="text-7xl font-black text-[#333] tracking-tighter drop-shadow-sm">€ {transaction.amount.toLocaleString('fr-BE', { minimumFractionDigits: 2 })}</p>
-                  <div className="flex items-center justify-center gap-2 mt-4">
-                    <Badge variant="outline" className="font-bold border-primary/20 text-primary px-4 py-1 rounded-full uppercase text-[10px] tracking-widest bg-primary/5">
-                      Virement {transaction.transferType === 'instant' ? 'Instantané' : 'Standard'}
+              {/* Montant Central */}
+              <div className="p-12 text-center bg-white relative">
+                <div className="absolute inset-0 bg-primary/5 blur-[80px] opacity-30 pointer-events-none" />
+                <div className="relative z-10 space-y-2">
+                  <p className="text-[13px] font-black text-muted-foreground uppercase tracking-[0.4em] mb-4">Montant Principal</p>
+                  <p className="text-8xl font-black text-[#333] tracking-tighter drop-shadow-md">€ {transaction.amount.toLocaleString('fr-BE', { minimumFractionDigits: 2 })}</p>
+                  <div className="flex items-center justify-center gap-3 mt-6">
+                    <Badge variant="outline" className="font-bold border-primary/20 text-primary px-5 py-1.5 rounded-full uppercase text-[11px] tracking-widest bg-primary/5">
+                      {transaction.transferType === 'instant' ? 'Virement Instantané' : 'Virement Classique'}
                     </Badge>
                   </div>
                 </div>
@@ -184,44 +182,59 @@ export default function TransactionDetailsPage() {
 
               <Separator className="bg-gray-100" />
 
-              {/* Détails Donneur d'Ordre & Bénéficiaire */}
-              <div className="p-10 space-y-10">
+              {/* Détails Émetteur & Bénéficiaire */}
+              <div className="p-12 space-y-12">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                  {/* Donneur d'Ordre */}
+                  {/* Émetteur */}
                   <div className="space-y-6">
-                    <div className="space-y-2">
-                      <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em]">Donneur d'Ordre</p>
-                      <div className="p-5 bg-gray-50 rounded-[2rem] border border-gray-100 shadow-inner space-y-3 group hover:bg-white hover:ring-2 hover:ring-primary/10 transition-all">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2.5 bg-white rounded-xl shadow-sm"><User className="h-5 w-5 text-gray-500" /></div>
-                          <div className="space-y-0.5">
-                            <p className="font-black text-[#333] text-lg leading-none">Bernard Berlin Leroy</p>
-                            <p className="text-[10px] font-bold text-muted-foreground">Client Private Gold</p>
-                          </div>
+                    <p className="text-[11px] font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-primary" /> Donneur d'Ordre
+                    </p>
+                    <div className="p-6 bg-gray-50 rounded-[2.5rem] border border-gray-100 shadow-inner space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-white rounded-2xl shadow-sm"><User className="h-6 w-6 text-primary" /></div>
+                        <div>
+                          <p className="font-black text-[#333] text-xl">Bernard Berlin Leroy</p>
+                          <p className="text-xs font-bold text-muted-foreground">Compte Private Gold</p>
                         </div>
-                        <div className="pt-2 border-t border-gray-200/50">
-                          <p className="text-[9px] font-bold text-muted-foreground uppercase mb-1">Compte à débiter (IBAN)</p>
-                          <p className="font-mono font-bold text-sm text-[#333] tracking-wider">BE12 3456 7890 1234</p>
-                        </div>
+                      </div>
+                      <div className="pt-4 border-t border-gray-200/50">
+                        <p className="text-[10px] font-black text-muted-foreground uppercase mb-1">IBAN de débit</p>
+                        <p className="font-mono font-bold text-sm tracking-widest">BE12 3456 7890 1234</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Bénéficiaire */}
+                  {/* Bénéficiaire COMPLET */}
                   <div className="space-y-6">
-                    <div className="space-y-2">
-                      <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Bénéficiaire</p>
-                      <div className="p-5 bg-white rounded-[2rem] border border-gray-100 shadow-sm space-y-3 group hover:shadow-md transition-all">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2.5 bg-gray-50 rounded-xl"><Building2 className="h-5 w-5 text-gray-500" /></div>
-                          <div className="space-y-0.5">
-                            <p className="font-black text-[#333] text-lg leading-none">{transaction.beneficiaryName}</p>
-                            <p className="text-[10px] font-bold text-muted-foreground">Destinataire Externe</p>
-                          </div>
+                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.3em] flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-gray-300" /> Destinataire
+                    </p>
+                    <div className="p-6 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm space-y-4 group hover:shadow-md transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-gray-50 rounded-2xl"><Building2 className="h-6 w-6 text-gray-500" /></div>
+                        <div>
+                          <p className="font-black text-[#333] text-xl">{transaction.beneficiaryName}</p>
+                          <p className="text-xs font-bold text-muted-foreground">{transaction.beneficiaryBankName || 'Institution Destinataire'}</p>
                         </div>
-                        <div className="pt-2 border-t border-gray-200/50">
-                          <p className="text-[9px] font-bold text-muted-foreground uppercase mb-1">Compte de crédit (IBAN)</p>
-                          <p className="font-mono font-bold text-sm text-[#333] tracking-wider">{transaction.beneficiaryIban}</p>
+                      </div>
+                      <div className="space-y-3 pt-4 border-t border-gray-100">
+                        <div>
+                          <p className="text-[10px] font-black text-muted-foreground uppercase mb-1">IBAN / Compte</p>
+                          <p className="font-mono font-bold text-sm tracking-widest">{transaction.beneficiaryIban}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-[10px] font-black text-muted-foreground uppercase mb-1">BIC / SWIFT</p>
+                            <p className="font-mono font-bold text-xs">{transaction.beneficiaryBic || 'N/A'}</p>
+                          </div>
+                          <div>
+                             <p className="text-[10px] font-black text-muted-foreground uppercase mb-1">Localisation</p>
+                             <div className="flex items-center gap-1.5">
+                                <MapPin className="h-3 w-3 text-gray-400" />
+                                <p className="text-[10px] font-bold text-gray-500 truncate">{transaction.beneficiaryAddress || 'Adresse certifiée'}</p>
+                             </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -230,143 +243,123 @@ export default function TransactionDetailsPage() {
 
                 <Separator className="bg-gray-100/50" />
 
-                {/* Détails d'exécution */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Planification</p>
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-gray-100 rounded-xl"><Clock className="h-5 w-5 text-gray-500" /></div>
+                {/* Détails Exécution */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="space-y-3">
+                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.3em]">Planification Temporelle</p>
+                    <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                      <Clock className="h-6 w-6 text-gray-400" />
                       <div>
                         <p className="font-bold text-[#333]">{new Date(transaction.transactionDate).toLocaleDateString('fr-BE', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-                        <p className="text-xs text-muted-foreground font-medium">Émis à {new Date(transaction.transactionDate).toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })}</p>
+                        <p className="text-xs text-muted-foreground font-medium">Valeur créditée le {new Date(transaction.transactionDate).toLocaleDateString('fr-BE')}</p>
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Communication</p>
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-gray-100 rounded-xl"><FileText className="h-5 w-5 text-gray-500" /></div>
-                      <p className="font-bold text-[#333] italic">"{transaction.description || 'Aucune communication fournie'}"</p>
+                  <div className="space-y-3">
+                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.3em]">Communication Officielle</p>
+                    <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                      <FileText className="h-6 w-6 text-gray-400" />
+                      <p className="font-bold text-[#333] italic leading-snug">"{transaction.description || 'Libellé de virement Private'}"</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Footer de facturation */}
-              <div className="bg-gray-900 text-white p-10 rounded-b-[2.5rem]">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-                  <div className="space-y-2 text-center md:text-left">
-                    <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Ventilation des frais</p>
-                    <div className="flex gap-6">
+              {/* RECAPITULATIF FINANCIER SOMBRE */}
+              <div className="bg-gray-900 text-white p-12 rounded-b-[2.5rem] relative overflow-hidden">
+                <div className="absolute bottom-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
+                <div className="flex flex-col md:flex-row justify-between items-center gap-10 relative z-10">
+                  <div className="space-y-4 text-center md:text-left">
+                    <p className="text-[11px] font-black text-white/40 uppercase tracking-[0.3em]">Ventilation des Coûts</p>
+                    <div className="flex gap-10">
                       <div>
-                        <p className="text-white/60 text-xs font-bold">Principal</p>
-                        <p className="text-lg font-black">€ {transaction.amount.toFixed(2)}</p>
+                        <p className="text-white/50 text-xs font-bold mb-1">Principal</p>
+                        <p className="text-2xl font-black">€ {transaction.amount.toLocaleString('fr-BE', { minimumFractionDigits: 2 })}</p>
                       </div>
                       <div>
-                        <p className="text-white/60 text-xs font-bold">Frais {transaction.transferType === 'instant' ? '(Instant)' : '(Standard)'}</p>
-                        <p className="text-lg font-black">€ {transaction.fee?.toFixed(2) || '0.00'}</p>
+                        <p className="text-white/50 text-xs font-bold mb-1">Frais {transaction.transferType === 'instant' ? 'Instant' : 'Standard'}</p>
+                        <p className="text-2xl font-black">€ {(transaction.fee || 0).toLocaleString('fr-BE', { minimumFractionDigits: 2 })}</p>
                       </div>
                     </div>
                   </div>
                   <div className="text-center md:text-right space-y-1">
-                    <p className="text-[12px] font-black text-primary uppercase tracking-[0.3em]">Débit Total Effectif</p>
-                    <p className="text-5xl font-black tracking-tighter">€ {transaction.totalAmount?.toLocaleString('fr-BE', { minimumFractionDigits: 2 }) || transaction.amount.toLocaleString('fr-BE', { minimumFractionDigits: 2 })}</p>
+                    <p className="text-[14px] font-black text-primary uppercase tracking-[0.4em]">Débit Total Effectif</p>
+                    <p className="text-6xl font-black tracking-tighter text-white">€ {(transaction.totalAmount || transaction.amount).toLocaleString('fr-BE', { minimumFractionDigits: 2 })}</p>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Boutons d'action secondaires */}
-          <div className="flex flex-wrap justify-center gap-6">
-            <button className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-primary transition-colors group">
-              <Printer className="h-4 w-4" /> Imprimer le reçu
-            </button>
-            <button className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-primary transition-colors group">
-              <Share2 className="h-4 w-4" /> Partager via canal sécurisé
-            </button>
-            <button className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-primary transition-colors group">
-              <ExternalLink className="h-4 w-4" /> Contester cette opération
-            </button>
-          </div>
         </div>
 
-        {/* PANNEAU D'AUDIT SÉCURITÉ */}
+        {/* SIDEBAR D'AUDIT & ACTIONS */}
         <div className="space-y-8 sticky top-24">
           <Card className="premium-card border-none overflow-hidden ring-1 ring-black/5">
-            <CardHeader className="bg-gray-50/50 pb-6 border-b border-gray-100/50">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-6 w-6 text-green-600" />
-                <CardTitle className="text-xl font-bold font-headline">Audit SafeGuard</CardTitle>
+            <CardHeader className="bg-gray-50/50 pb-8 border-b border-gray-100/50">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-50 rounded-lg"><ShieldCheck className="h-6 w-6 text-green-600" /></div>
+                <CardTitle className="text-2xl font-bold font-headline">Audit SafeGuard</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              <div className="space-y-5">
-                <div className="flex gap-4 items-start group">
-                  <div className="mt-1.5 w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)]" />
+            <CardContent className="p-8 space-y-8">
+              <div className="space-y-6">
+                <div className="flex gap-4 items-start">
+                  <div className="mt-1.5 w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]" />
                   <div className="space-y-1">
-                    <p className="text-sm font-bold text-[#333]">Origine certifiée</p>
-                    <p className="text-[11px] text-muted-foreground leading-tight">L'identité du donneur d'ordre (Bernard Berlin Leroy) a été validée via certificat ING ID.</p>
+                    <p className="text-sm font-black text-[#333]">Certificat d'origine</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">Identité de l'émetteur vérifiée par certificat numérique ING ID Gold.</p>
                   </div>
                 </div>
-                <div className="flex gap-4 items-start group">
-                  <div className="mt-1.5 w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)]" />
+                <div className="flex gap-4 items-start">
+                  <div className="mt-1.5 w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]" />
                   <div className="space-y-1">
-                    <p className="text-sm font-bold text-[#333]">Chiffrement bout-en-bout</p>
-                    <p className="text-[11px] text-muted-foreground leading-tight">Les données IBAN ont été transmises via le protocole sécurisé SEPA 2.0.</p>
+                    <p className="text-sm font-black text-[#333]">Chiffrement Bancaire</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">Flux de données IBAN/BIC sécurisé via tunnel SEPA-NET 2.0.</p>
                   </div>
                 </div>
                 {isFailed && (
-                  <div className="flex gap-4 items-start p-4 bg-destructive/5 rounded-2xl border border-destructive/10 animate-in shake-in duration-500">
-                    <div className="mt-1.5 w-2.5 h-2.5 rounded-full bg-destructive animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.6)]" />
+                  <div className="flex gap-4 items-start p-5 bg-red-50 rounded-[2rem] border border-red-100 animate-in shake-in duration-500">
+                    <div className="mt-1.5 w-3 h-3 rounded-full bg-red-600 animate-pulse shadow-[0_0_15px_rgba(220,38,38,0.6)]" />
                     <div className="space-y-1">
-                      <p className="text-sm font-black text-destructive">Anomalie #402</p>
-                      <p className="text-[11px] text-destructive/80 font-bold leading-tight italic">
-                        Suspicion d'opération atypique sur compte Private Banking. Suspension préventive pour protection du patrimoine.
+                      <p className="text-sm font-black text-red-600">Interruption AML-402</p>
+                      <p className="text-[11px] text-red-700/80 font-bold leading-tight italic">
+                        Transaction suspendue pour anomalie de profilage Private Banking. Audit manuel requis.
                       </p>
                     </div>
                   </div>
                 )}
               </div>
 
-              <Separator className="bg-gray-100" />
-
-              <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-start gap-3">
-                <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                <p className="text-[10px] font-bold text-primary leading-tight">
-                  Ce document constitue une preuve de l'ordre émis. L'exécution effective est soumise à la validation de la chambre de compensation.
-                </p>
+              <div className="pt-4 flex flex-col gap-3">
+                 <Button className="w-full bg-[#333] hover:bg-black text-white font-black h-14 rounded-2xl text-sm uppercase tracking-widest shadow-xl transition-all">
+                    Imprimer le reçu
+                 </Button>
+                 <Button variant="ghost" className="font-bold text-gray-500 hover:text-primary">
+                    <Share2 className="mr-2 h-4 w-4" /> Partage sécurisé
+                 </Button>
               </div>
-
-              {isFailed && (
-                <div className="pt-2">
-                  <Button className="w-full bg-[#333] hover:bg-black text-white font-black h-12 rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-black/10 transition-all hover:scale-[1.02]">
-                    Valider mon identité
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
 
-          <Card className="p-8 rounded-[2rem] bg-gradient-to-br from-[#3b0051] to-[#2a003a] text-white space-y-4 shadow-xl relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-all">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-white/20 transition-all" />
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-md">
-                <ShieldCheck className="h-6 w-6 text-white" />
+          <Card className="p-10 rounded-[3rem] bg-gradient-to-br from-[#3b0051] to-[#2a003a] text-white space-y-6 shadow-2xl relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-all">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl group-hover:bg-white/20 transition-all" />
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-xl ring-1 ring-white/30">
+                <Landmark className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-black">Besoin d'aide?</h3>
+              <h3 className="text-2xl font-black">Besoin d'assistance?</h3>
             </div>
-            <p className="text-xs font-medium text-white/80 leading-relaxed">
-              Votre conseiller Private Banking est disponible 24/7 pour toute question sur vos transferts.
+            <p className="text-sm font-medium text-white/80 leading-relaxed">
+              Votre conseiller Private Banking Sophie de Meyer est disponible pour valider cet ordre.
             </p>
-            <Button variant="link" className="p-0 text-primary font-black text-sm flex items-center gap-2 group-hover:underline">
-              Contacter Sophie de Meyer <ChevronRight className="h-4 w-4" />
+            <Button variant="link" className="p-0 text-primary font-black text-base flex items-center gap-2 group-hover:underline">
+              Contacter mon conseiller <ChevronRight className="h-5 w-5" />
             </Button>
           </Card>
-
-          <div className="p-6 rounded-3xl bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-center">
-            <Image src="https://i.imgur.com/WWZ10oQ.png" alt="ING Logo" width={50} height={20} className="opacity-20 grayscale mb-2" />
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">ING Belgium SA/NV © 2024</p>
+          
+          <div className="flex flex-col items-center justify-center pt-4 opacity-30 grayscale">
+            <Image src="https://i.imgur.com/WWZ10oQ.png" alt="ING Logo" width={60} height={24} className="mb-2" />
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">ING BELGIUM © 2024</p>
           </div>
         </div>
       </div>

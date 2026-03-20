@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -161,7 +162,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Transaction",
       "type": "object",
-      "description": "Records details of a financial transaction, such as a transfer, deposit, or withdrawal. This entity specifically addresses the user's request to persist transfers.",
+      "description": "Records details of a financial transaction, such as a transfer, deposit, or withdrawal.",
       "properties": {
         "id": {
           "type": "string",
@@ -194,7 +195,7 @@
         },
         "senderAccountId": {
           "type": "string",
-          "description": "Reference to the BankAccount from which the funds were sent. (Relationship: BankAccount 1:N Transaction as sender)"
+          "description": "Reference to the BankAccount from which the funds were sent."
         },
         "beneficiaryName": {
           "type": "string",
@@ -204,19 +205,36 @@
           "type": "string",
           "description": "The IBAN of the beneficiary account."
         },
-        "receiverAccountId": {
+        "beneficiaryBic": {
           "type": "string",
-          "description": "Optional reference to the BankAccount within the same system that received the funds, if it's an internal transfer. (Relationship: BankAccount 1:N Transaction as receiver)",
-          "format": "optional"
+          "description": "The BIC/SWIFT code of the beneficiary bank."
+        },
+        "beneficiaryBankName": {
+          "type": "string",
+          "description": "The name of the beneficiary's bank."
+        },
+        "beneficiaryAddress": {
+          "type": "string",
+          "description": "The physical address of the beneficiary (required for international compliance)."
+        },
+        "transferType": {
+          "type": "string",
+          "description": "Mode of transfer: 'standard' or 'instant'."
+        },
+        "fee": {
+          "type": "number",
+          "description": "Service fees applied to the transaction."
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total amount debited (amount + fee)."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp indicating when the transaction record was created.",
           "format": "date-time"
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp indicating when the transaction record was last updated.",
           "format": "date-time"
         }
       },
@@ -250,11 +268,11 @@
           "schema": {
             "$ref": "#/backend/entities/UserProfile"
           },
-          "description": "Stores user profile information. The `userId` in the path corresponds to `request.auth.uid` and `UserProfile.externalAuthId`. This collection acts as the root for all user-specific data.",
+          "description": "Stores user profile information.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier for the user, matching `request.auth.uid`."
+              "description": "The unique identifier for the user."
             }
           ]
         }
@@ -266,7 +284,7 @@
           "schema": {
             "$ref": "#/backend/entities/BankAccount"
           },
-          "description": "Stores bank account details for a specific user. The `userId` field in the document must match the `{userId}` in the path, ensuring Authorization Independence.",
+          "description": "Stores bank account details for a specific user.",
           "params": [
             {
               "name": "userId",
@@ -286,7 +304,7 @@
           "schema": {
             "$ref": "#/backend/entities/Card"
           },
-          "description": "Stores card information associated with a specific bank account. Includes denormalized `userId` for Authorization Independence (must match the `{userId}` in the path) and `bankAccountId` (must match the `{bankAccountId}` in the path).",
+          "description": "Stores card information associated with a specific bank account.",
           "params": [
             {
               "name": "userId",
@@ -310,7 +328,7 @@
           "schema": {
             "$ref": "#/backend/entities/Transaction"
           },
-          "description": "Records details of financial transactions (virements) for a specific bank account. Includes denormalized `userId` for Authorization Independence (must match the `{userId}` in the path). The `senderAccountId` or `receiverAccountId` within the document must match the `{bankAccountId}` in the path, making it self-contained for security rules.",
+          "description": "Records details of financial transactions (virements) for a specific bank account.",
           "params": [
             {
               "name": "userId",
@@ -318,7 +336,7 @@
             },
             {
               "name": "bankAccountId",
-              "description": "The unique identifier of the bank account relevant to this transaction (either as sender or receiver)."
+              "description": "The unique identifier of the bank account relevant to this transaction."
             },
             {
               "name": "transactionId",
@@ -327,7 +345,6 @@
           ]
         }
       }
-    ],
-    "reasoning": "The Firestore structure is designed to be highly secure, scalable, and debuggable, adhering strictly to the core design principles. All data is primarily organized under a user-centric hierarchy, starting with `/users/{userId}`, which aligns with path-based ownership for private user data.\n\n**Authorization Independence via Denormalization (CRITICAL):**\nThis principle is achieved by denormalizing the `userId` (representing the owner) into all subcollection documents. Specifically:\n\n1.  **`/users/{userId}` (UserProfile):** The `UserProfile` document's `externalAuthId` field is directly linked to `request.auth.uid` and the `{userId}` wildcard in the path, making its ownership immediately clear without external lookups.\n2.  **`/users/{userId}/bankAccounts/{bankAccountId}` (BankAccount):** The `BankAccount` document explicitly includes a `userId` field which must match the `{userId}` in the path. This eliminates the need for `get()` operations to check parent ownership.\n3.  **`/users/{userId}/bankAccounts/{bankAccountId}/cards/{cardId}` (Card):** The `Card` document includes a denormalized `userId` field. This `userId` must match the `{userId}` in the path and `request.auth.uid`. Additionally, the `bankAccountId` in the document must match the `{bankAccountId}` in the path, ensuring the card belongs to the specific bank account without hierarchical dependencies.\n4.  **`/users/{userId}/bankAccounts/{bankAccountId}/transactions/{transactionId}` (Transaction):** The `Transaction` document includes a denormalized `userId` field, which must match the `{userId}` in the path and `request.auth.uid`. Furthermore, the `senderAccountId` or `receiverAccountId` within the transaction document must match the `{bankAccountId}` in the path. This allows for direct authorization checks at the `Transaction` document level, ensuring that a user can only access transactions associated with their own bank accounts directly from the document's fields.\n\nThis denormalization strategy completely eliminates the need for `get()` calls in security rules for ownership checks, making rules atomic, simpler to write, and much more efficient, especially for batch operations.\n\n**QAPs (Rules are not Filters):**\nThe structural segregation and path-based ownership inherently support Query-Able Paths (QAPs). Any `list` operation performed on a collection at any level of the hierarchy (`/users`, `/users/{userId}/bankAccounts`, `/users/{userId}/bankAccounts/{bankAccountId}/cards`, `/users/{userId}/bankAccounts/{bankAccountId}/transactions`) will implicitly be scoped by the `{userId}` in the path, which is enforced by the `request.auth.uid` check. Since the `userId` is always part of the path (or directly referenced in the document for root collections), Firestore's security rules can ensure that `list` operations only return data owned by the authenticated user, thus preventing unintentional data exposure and eliminating the need for client-side filtering or complex server-side rule logic to mimic filtering.\n\n**Overall Benefits:**\n-   **Security:** Clear, explicit ownership via path and denormalized `userId` in every document.\n-   **Scalability:** No `get()` calls in rules mean fewer read operations and better performance.\n-   **Debuggability:** Rules are straightforward (`request.auth.uid == resource.data.userId`), making it easy to understand and troubleshoot access control issues.\n-   **Atomic Operations:** Parent and child documents can be created/updated in batches or transactions without complex rule interdependencies."
+    ]
   }
 }
