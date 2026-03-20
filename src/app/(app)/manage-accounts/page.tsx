@@ -15,7 +15,7 @@ export default function ManageAccountsPage() {
         bank: "ING Belgium SA/NV",
         address: "Avenue Marnix 24, B-1000 Bruxelles",
         type: "Compte à vue Private",
-        openingDate: "12/03/2012",
+        openingDate: "20/03/2026",
         status: "Actif"
     };
 
