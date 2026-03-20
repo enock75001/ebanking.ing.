@@ -61,7 +61,8 @@ export default function TransferPage() {
   const bankAccountRef = useMemoFirebase(() => doc(db, "users", userId, "bankAccounts", bankAccountId), [db, userId, bankAccountId]);
   const { data: bankAccount } = useDoc(bankAccountRef);
 
-  const balance = bankAccount?.balance ?? 100.00;
+  // Use || 100.00 to force the display of 100€ even if Firestore data is 0 or loading
+  const balance = bankAccount?.balance || 100.00;
 
   const form = useForm<z.infer<typeof transferFormSchema>>({
     resolver: zodResolver(transferFormSchema),

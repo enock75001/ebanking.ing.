@@ -30,7 +30,7 @@ export default function AccountsPage() {
 
   const { data: dbAccounts, isLoading } = useCollection(accountsQuery);
 
-  // Fallback data if DB is empty or loading
+  // Fallback data with 100€ balance
   const staticAccounts = [
     {
       id: "1",
@@ -58,12 +58,13 @@ export default function AccountsPage() {
     }
   ];
 
+  // We use || 100.00 to ensure that even if the DB returns 0, it displays 100
   const accounts = dbAccounts && dbAccounts.length > 0 ? dbAccounts.map(acc => ({
     ...staticAccounts.find(s => s.id === "1")!, // base styles
     id: acc.id,
     name: acc.name || "ING Compte à vue Private",
     number: acc.iban || acc.accountNumber,
-    balance: acc.balance ?? 100.00,
+    balance: acc.balance || 100.00,
   })) : staticAccounts;
 
   const totalWealth = accounts.reduce((acc, curr) => acc + curr.balance, 0);
@@ -139,7 +140,7 @@ export default function AccountsPage() {
                         Taux: 0.85%
                     </div>
                   </div>
-                  <Link href="/manage-accounts">
+                  <Link href="/rib">
                     <Button variant="ghost" className="font-bold text-primary group-hover:translate-x-1 transition-transform">
                       Gérer ce compte <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>

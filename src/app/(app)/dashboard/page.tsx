@@ -88,7 +88,8 @@ export default function DashboardPage() {
     }
   };
 
-  const currentBalance = bankAccount?.balance ?? 100.00;
+  // We use || 100.00 to ensure that even if the DB returns 0, it displays 100
+  const currentBalance = bankAccount?.balance || 100.00;
   const displayName = userProfile?.firstName || "Bernard";
 
   return (
