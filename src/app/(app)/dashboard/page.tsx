@@ -40,7 +40,6 @@ export default function DashboardPage() {
   const { user } = useUser();
   const router = useRouter();
 
-  // Extraction dynamique de l'ID utilisateur réel
   const userId = user?.uid;
   const bankAccountId = "be12-3456-7890-1234";
   
@@ -88,8 +87,7 @@ export default function DashboardPage() {
     }
   };
 
-  // We use || 100.00 to ensure that even if the DB returns 0, it displays 100
-  const currentBalance = bankAccount?.balance || 100.00;
+  const currentBalance = 100.00; // Forcer l'affichage à 100€
   const displayName = userProfile?.firstName || "Bernard";
 
   return (
@@ -107,7 +105,7 @@ export default function DashboardPage() {
               </span>
             </h1>
             <p className="text-muted-foreground text-lg">
-              Voici un aperçu de vos finances, M. {userProfile?.firstName} {userProfile?.lastName}.
+              Voici un aperçu de vos finances, M. {userProfile?.firstName || 'Bernard'} {userProfile?.lastName || 'Berlin Leroy'}.
             </p>
           </div>
           <div className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/50 text-sm text-muted-foreground shadow-sm ring-1 ring-black/5">

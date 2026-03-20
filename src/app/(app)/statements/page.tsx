@@ -26,6 +26,7 @@ import { collection, query, orderBy, limit, doc } from "firebase/firestore";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function StatementsPage() {
   const [account, setAccount] = useState("be12-3456-7890-1234");
@@ -35,6 +36,7 @@ export default function StatementsPage() {
   const { toast } = useToast();
   const db = useFirestore();
   const { user } = useUser();
+  const router = useRouter();
   const userId = user?.uid;
   const bankAccountId = account;
 
@@ -76,8 +78,7 @@ export default function StatementsPage() {
     }
   };
 
-  // We use || 100.00 to ensure that even if the DB returns 0, it displays 100
-  const balance = bankAccount?.balance || 100.00;
+  const balance = 100.00; // Forcer 100€
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4 space-y-10">
@@ -202,7 +203,8 @@ export default function StatementsPage() {
                     dbTransactions.map((t) => (
                       <TableRow 
                         key={t.id} 
-                        className="group hover:bg-white/80 transition-all duration-300 border-b border-gray-50/50 last:border-none"
+                        className="group hover:bg-white/80 transition-all duration-300 border-b border-gray-50/50 last:border-none cursor-pointer"
+                        onClick={() => router.push(`/transactions/${t.id}`)}
                       >
                       <TableCell>
                           <div className="h-12 w-12 rounded-xl bg-gray-100/50 flex items-center justify-center transition-all duration-500 group-hover:bg-white group-hover:shadow-md group-hover:scale-110 shadow-sm border border-white">

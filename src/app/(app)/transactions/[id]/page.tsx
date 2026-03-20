@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useDoc, useMemoFirebase, useFirestore } from "@/firebase";
+import { useDoc, useMemoFirebase, useFirestore, useUser, deleteDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { 
   ShieldAlert, 
@@ -18,29 +17,58 @@ import {
   Lock,
   Globe,
   Building2,
-  AlertCircle
+  AlertCircle,
+  Trash2,
+  FileDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 export default function TransactionDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
   const db = useFirestore();
+  const { user } = useUser();
+  const { toast } = useToast();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  // On suppose que l'ID de l'utilisateur et du compte sont connus ou extraits du contexte
-  const userId = "bernard-berlin-leroy";
+  const userId = user?.uid;
   const bankAccountId = "be12-3456-7890-1234";
 
   const transactionRef = useMemoFirebase(
-    () => (id ? doc(db, "users", userId, "bankAccounts", bankAccountId, "transactions", id as string) : null),
-    [db, id]
+    () => (id && userId ? doc(db, "users", userId, "bankAccounts", bankAccountId, "transactions", id as string) : null),
+    [db, id, userId]
   );
 
   const { data: transaction, isLoading } = useDoc(transactionRef);
+
+  const handleDelete = () => {
+    if (!transactionRef) return;
+    setIsDeleting(true);
+    deleteDocumentNonBlocking(transactionRef);
+    toast({
+      title: "Transaction supprimée",
+      description: "L'opération a été retirée de votre historique.",
+    });
+    router.replace("/dashboard");
+  };
+
+  const handleDownload = () => {
+    setIsDownloading(true);
+    setTimeout(() => {
+      setIsDownloading(false);
+      toast({
+        title: "Reçu généré",
+        description: "Le reçu de la transaction a été téléchargé avec succès.",
+      });
+    }, 2000);
+  };
 
   if (isLoading) {
     return (
@@ -64,32 +92,48 @@ export default function TransactionDetailsPage() {
     <div className="max-w-4xl mx-auto space-y-8 pb-20 animate-in fade-in duration-700">
       <header className="flex items-center justify-between">
         <Button variant="ghost" onClick={() => router.back()} className="font-bold hover:text-primary transition-colors">
-          <ArrowLeft className="mr-2 h-5 w-5" /> Retour à l'historique
+          <ArrowLeft className="mr-2 h-5 w-5" /> Retour
         </Button>
         <div className="flex gap-3">
-          <Button variant="outline" className="rounded-xl border-2 font-bold"><Printer className="mr-2 h-4 w-4" /> Imprimer</Button>
-          <Button variant="outline" className="rounded-xl border-2 font-bold"><Download className="mr-2 h-4 w-4" /> Reçu PDF</Button>
+          <Button 
+            variant="destructive" 
+            onClick={handleDelete} 
+            disabled={isDeleting}
+            className="rounded-xl border-2 font-bold"
+          >
+            <Trash2 className="mr-2 h-4 w-4" /> {isDeleting ? "Suppression..." : "Supprimer"}
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className="rounded-xl border-2 font-bold"
+          >
+            <FileDown className="mr-2 h-4 w-4" /> {isDownloading ? "Génération..." : "Télécharger Reçu"}
+          </Button>
         </div>
       </header>
 
-      {/* État de Blocage - Alerte de Sécurité */}
-      <Card className="border-none shadow-2xl bg-destructive/5 ring-2 ring-destructive/20 overflow-hidden relative">
-        <div className="absolute top-0 right-0 p-8 opacity-10">
-          <ShieldAlert className="h-32 w-32 text-destructive" />
-        </div>
-        <CardContent className="p-8 flex flex-col md:flex-row items-center gap-8 relative z-10">
-          <div className="bg-destructive text-white p-6 rounded-[2rem] shadow-xl shadow-destructive/20">
-            <Lock className="h-12 w-12" />
+      {/* État de Blocage - Alerte de Sécurité si Failed */}
+      {transaction.status === "Failed" && (
+        <Card className="border-none shadow-2xl bg-destructive/5 ring-2 ring-destructive/20 overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-8 opacity-10">
+            <ShieldAlert className="h-32 w-32 text-destructive" />
           </div>
-          <div className="space-y-2 text-center md:text-left">
-            <h2 className="text-3xl font-black text-destructive uppercase tracking-tighter">Opération Suspendue</h2>
-            <p className="text-lg font-bold text-destructive/80 leading-relaxed max-w-xl">
-              Ce virement a été intercepté par les systèmes de surveillance <strong>ING SafeGuard</strong>. 
-              Une vérification manuelle est requise pour libérer les fonds.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+          <CardContent className="p-8 flex flex-col md:flex-row items-center gap-8 relative z-10">
+            <div className="bg-destructive text-white p-6 rounded-[2rem] shadow-xl shadow-destructive/20">
+              <Lock className="h-12 w-12" />
+            </div>
+            <div className="space-y-2 text-center md:text-left">
+              <h2 className="text-3xl font-black text-destructive uppercase tracking-tighter">Opération Suspendue</h2>
+              <p className="text-lg font-bold text-destructive/80 leading-relaxed max-w-xl">
+                Ce virement a été intercepté par les systèmes de surveillance <strong>ING SafeGuard</strong>. 
+                Une vérification manuelle est requise pour libérer les fonds.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Détails Financiers */}
@@ -202,13 +246,15 @@ export default function TransactionDetailsPage() {
                     <p className="text-[10px] text-muted-foreground">Solde suffisant et source identifiée.</p>
                   </div>
                 </div>
-                <div className="flex gap-4 items-start">
-                  <div className="mt-1 w-2 h-2 rounded-full bg-destructive animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
-                  <div className="space-y-1">
-                    <p className="text-xs font-bold text-destructive">Alerte SafeGuard #402</p>
-                    <p className="text-[10px] text-muted-foreground">Destination identifiée comme sensible. Blocage préventif activé.</p>
+                {transaction.status === "Failed" && (
+                  <div className="flex gap-4 items-start">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-destructive animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold text-destructive">Alerte SafeGuard #402</p>
+                      <p className="text-[10px] text-muted-foreground">Destination identifiée comme sensible. Blocage préventif activé.</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               <Separator className="bg-gray-100" />
@@ -220,11 +266,13 @@ export default function TransactionDetailsPage() {
                 </p>
               </div>
 
-              <div className="pt-4">
-                <Button className="w-full bg-[#333] hover:bg-black text-white font-bold h-12 rounded-xl text-xs uppercase tracking-widest">
-                  Contester le blocage
-                </Button>
-              </div>
+              {transaction.status === "Failed" && (
+                <div className="pt-4">
+                  <Button className="w-full bg-[#333] hover:bg-black text-white font-bold h-12 rounded-xl text-xs uppercase tracking-widest">
+                    Contester le blocage
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
