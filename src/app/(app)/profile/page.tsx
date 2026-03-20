@@ -1,23 +1,73 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, Phone, Home, UserCheck, Banknote, ShieldCheck, Sparkles, Edit3 } from "lucide-react";
+import { User, Mail, Phone, Home, UserCheck, Banknote, ShieldCheck, Sparkles, Edit3, Save, X, LoaderCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
+import { doc } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
-    const userDetails = {
-        name: "Bernard Berlin Leroy",
-        initials: "BL",
-        email: "bernard.berlin.leroy@ing.be",
-        phone: "+32 470 99 88 77",
-        address: "Place Stéphanie 12, 1050 Ixelles, Belgique",
-        accountManager: "Sophie de Meyer",
-        iban: "BE12 3456 7890 1234"
+    const { user } = useUser();
+    const db = useFirestore();
+    const { toast } = useToast();
+    const [isEditing, setIsEditing] = useState(false);
+
+    // Récupération du profil depuis Firestore
+    const userRef = useMemoFirebase(() => user ? doc(db, "users", user.uid) : null, [db, user]);
+    const { data: profile, isLoading } = useDoc(userRef);
+
+    // État local pour le formulaire d'édition
+    const [editForm, setEditForm] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "+32 470 99 88 77", // Valeur par défaut si non présente
+        address: "Place Stéphanie 12, 1050 Ixelles, Belgique", // Valeur par défaut si non présente
+    });
+
+    // Synchronisation de l'état local avec les données Firestore
+    useEffect(() => {
+        if (profile) {
+            setEditForm({
+                firstName: profile.firstName || "",
+                lastName: profile.lastName || "",
+                email: profile.email || "",
+                phone: profile.phone || "+32 470 99 88 77",
+                address: profile.address || "Place Stéphanie 12, 1050 Ixelles, Belgique",
+            });
+        }
+    }, [profile]);
+
+    const handleSave = () => {
+        if (!userRef) return;
+
+        updateDocumentNonBlocking(userRef, {
+            ...editForm,
+            updatedAt: new Date().toISOString(),
+        });
+
+        setIsEditing(false);
+        toast({
+            title: "Profil mis à jour",
+            description: "Vos informations ont été enregistrées avec succès.",
+        });
     };
 
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <LoaderCircle className="h-12 w-12 animate-spin text-primary" />
+            </div>
+        );
+    }
+
     return (
-        <div className="space-y-10 max-w-4xl mx-auto">
+        <div className="space-y-10 max-w-4xl mx-auto pb-20">
             <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
                 <div className="space-y-2">
                     <div className="flex items-center gap-3">
@@ -30,9 +80,30 @@ export default function ProfilePage() {
                         Gérez vos informations personnelles et vos préférences de sécurité.
                     </p>
                 </div>
-                <Button className="h-12 px-8 font-bold rounded-xl shadow-lg shadow-primary/10 transition-all hover:scale-[1.05] active:scale-[0.98]">
-                    <Edit3 className="mr-2 h-5 w-5" /> Modifier le profil
-                </Button>
+                {!isEditing ? (
+                    <Button 
+                        onClick={() => setIsEditing(true)}
+                        className="h-12 px-8 font-bold rounded-xl shadow-lg shadow-primary/10 transition-all hover:scale-[1.05] active:scale-[0.98]"
+                    >
+                        <Edit3 className="mr-2 h-5 w-5" /> Modifier le profil
+                    </Button>
+                ) : (
+                    <div className="flex gap-3">
+                        <Button 
+                            variant="outline"
+                            onClick={() => setIsEditing(false)}
+                            className="h-12 px-6 font-bold rounded-xl border-2"
+                        >
+                            <X className="mr-2 h-5 w-5" /> Annuler
+                        </Button>
+                        <Button 
+                            onClick={handleSave}
+                            className="h-12 px-8 font-bold rounded-xl shadow-lg shadow-primary/10 bg-green-600 hover:bg-green-700"
+                        >
+                            <Save className="mr-2 h-5 w-5" /> Sauvegarder
+                        </Button>
+                    </div>
+                )}
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -42,7 +113,7 @@ export default function ProfilePage() {
                   <CardHeader className="relative -mt-12 flex flex-col items-center">
                       <div className="relative group">
                         <div className="absolute inset-0 bg-white rounded-full scale-110 shadow-lg" />
-                        <Avatar className="h-32 w-32 relative border-4 border-white shadow-xl group-hover:scale-105 transition-transform duration-500 bg-gray-100">
+                        <Avatar className="h-32 w-32 relative border-4 border-white shadow-xl bg-gray-100">
                             <AvatarFallback className="bg-gray-100 text-gray-400 flex items-center justify-center">
                                 <User className="h-16 w-16" />
                             </AvatarFallback>
@@ -50,7 +121,24 @@ export default function ProfilePage() {
                         <div className="absolute bottom-1 right-1 bg-green-500 w-6 h-6 rounded-full border-4 border-white shadow-sm" />
                       </div>
                       <div className="pt-4">
-                        <CardTitle className="text-2xl font-black text-[#333]">{userDetails.name}</CardTitle>
+                        <CardTitle className="text-2xl font-black text-[#333]">
+                            {isEditing ? (
+                                <div className="flex gap-2 justify-center">
+                                    <Input 
+                                        value={editForm.firstName} 
+                                        onChange={(e) => setEditForm({...editForm, firstName: e.target.value})}
+                                        className="text-center font-bold h-8 w-24"
+                                    />
+                                    <Input 
+                                        value={editForm.lastName} 
+                                        onChange={(e) => setEditForm({...editForm, lastName: e.target.value})}
+                                        className="text-center font-bold h-8 w-24"
+                                    />
+                                </div>
+                            ) : (
+                                `${profile?.firstName || "Bernard"} ${profile?.lastName || "Berlin Leroy"}`
+                            )}
+                        </CardTitle>
                         <div className="flex items-center justify-center gap-1.5 mt-1 text-primary font-bold">
                           <ShieldCheck className="h-4 w-4" />
                           <span className="text-xs uppercase tracking-widest">Identité Vérifiée • Client Private</span>
@@ -65,7 +153,7 @@ export default function ProfilePage() {
                   </CardContent>
                 </Card>
 
-                <div className="premium-card p-6 rounded-3xl bg-primary text-white space-y-4 shadow-lg shadow-primary/20 animate-pulse">
+                <div className="premium-card p-6 rounded-3xl bg-primary text-white space-y-4 shadow-lg shadow-primary/20">
                   <div className="flex items-center gap-2">
                     <Sparkles className="h-6 w-6" />
                     <p className="font-black uppercase tracking-widest text-sm">Privilèges Gold</p>
@@ -81,31 +169,60 @@ export default function ProfilePage() {
                         <CardDescription className="text-base font-medium">Données utilisées pour les communications officielles.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4 pt-8">
-                        <div className="flex items-center gap-6 p-5 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 group hover:ring-primary/20 transition-all">
-                            <div className="bg-gray-100 p-3 rounded-xl group-hover:bg-primary/5 transition-colors">
+                        {/* Email */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-5 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 group hover:ring-primary/20 transition-all">
+                            <div className="bg-gray-100 p-3 rounded-xl group-hover:bg-primary/5 transition-colors w-fit">
                               <Mail className="h-6 w-6 text-muted-foreground group-hover:text-primary" />
                             </div>
-                            <div className="flex-1 flex justify-between items-center">
-                                <span className="text-muted-foreground font-semibold">Adresse Email</span>
-                                <span className="font-black text-gray-800">{userDetails.email}</span>
+                            <div className="flex-1 space-y-1">
+                                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Adresse Email</Label>
+                                {isEditing ? (
+                                    <Input 
+                                        value={editForm.email} 
+                                        onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                                        className="h-10 font-bold"
+                                    />
+                                ) : (
+                                    <p className="font-black text-gray-800">{profile?.email || "bernard.berlin.leroy@ing.be"}</p>
+                                )}
                             </div>
                         </div>
-                         <div className="flex items-center gap-6 p-5 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 group hover:ring-primary/20 transition-all">
-                            <div className="bg-gray-100 p-3 rounded-xl group-hover:bg-primary/5 transition-colors">
+
+                        {/* Téléphone */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-5 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 group hover:ring-primary/20 transition-all">
+                            <div className="bg-gray-100 p-3 rounded-xl group-hover:bg-primary/5 transition-colors w-fit">
                               <Phone className="h-6 w-6 text-muted-foreground group-hover:text-primary" />
                             </div>
-                            <div className="flex-1 flex justify-between items-center">
-                                <span className="text-muted-foreground font-semibold">Numéro de téléphone</span>
-                                <span className="font-black text-gray-800">{userDetails.phone}</span>
+                            <div className="flex-1 space-y-1">
+                                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Numéro de téléphone</Label>
+                                {isEditing ? (
+                                    <Input 
+                                        value={editForm.phone} 
+                                        onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                                        className="h-10 font-bold"
+                                    />
+                                ) : (
+                                    <p className="font-black text-gray-800">{editForm.phone}</p>
+                                )}
                             </div>
                         </div>
-                        <div className="flex items-start gap-6 p-5 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 group hover:ring-primary/20 transition-all">
-                            <div className="bg-gray-100 p-3 rounded-xl group-hover:bg-primary/5 transition-colors mt-1">
+
+                        {/* Adresse */}
+                        <div className="flex flex-col sm:flex-row sm:items-start gap-4 p-5 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 group hover:ring-primary/20 transition-all">
+                            <div className="bg-gray-100 p-3 rounded-xl group-hover:bg-primary/5 transition-colors mt-1 w-fit">
                               <Home className="h-6 w-6 text-muted-foreground group-hover:text-primary" />
                             </div>
-                            <div className="flex-1 flex justify-between items-start">
-                                <span className="text-muted-foreground font-semibold">Adresse postale</span>
-                                <span className="font-black text-gray-800 text-right max-w-[200px] leading-snug">{userDetails.address}</span>
+                            <div className="flex-1 space-y-1">
+                                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Adresse postale</Label>
+                                {isEditing ? (
+                                    <Input 
+                                        value={editForm.address} 
+                                        onChange={(e) => setEditForm({...editForm, address: e.target.value})}
+                                        className="h-10 font-bold"
+                                    />
+                                ) : (
+                                    <p className="font-black text-gray-800 leading-snug">{editForm.address}</p>
+                                )}
                             </div>
                         </div>
                     </CardContent>
@@ -123,7 +240,7 @@ export default function ProfilePage() {
                             </div>
                             <div className="flex-1 flex justify-between items-center">
                                 <span className="text-muted-foreground font-semibold">Gestionnaire Private</span>
-                                <span className="font-black text-gray-800">{userDetails.accountManager}</span>
+                                <span className="font-black text-gray-800">Sophie de Meyer</span>
                             </div>
                         </div>
                          <div className="flex items-center gap-6 p-5 rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
@@ -132,7 +249,7 @@ export default function ProfilePage() {
                             </div>
                             <div className="flex-1 flex justify-between items-center">
                                 <span className="text-muted-foreground font-semibold">IBAN Principal</span>
-                                <span className="font-mono font-black text-gray-800">{userDetails.iban}</span>
+                                <span className="font-mono font-black text-gray-800">BE12 3456 7890 1234</span>
                             </div>
                         </div>
                     </CardContent>
