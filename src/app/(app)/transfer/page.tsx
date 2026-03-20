@@ -21,7 +21,22 @@ import { sendTransactionEmail } from "@/ai/flows/email-flow";
 import type { EmailFlowInput } from "./types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, LoaderCircle, ArrowRightLeft, Sparkles, Wallet, ShieldCheck, Info, CheckCircle2, User, AlertTriangle, Clock } from "lucide-react";
+import { 
+  CalendarIcon, 
+  LoaderCircle, 
+  ArrowRightLeft, 
+  Sparkles, 
+  Wallet, 
+  ShieldCheck, 
+  CheckCircle2, 
+  User, 
+  Clock, 
+  ChevronRight, 
+  ChevronLeft,
+  Info,
+  Building2,
+  FileText
+} from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -31,6 +46,7 @@ import Image from "next/image";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, serverTimestamp, doc } from "firebase/firestore";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { Separator } from "@/components/ui/separator";
 
 const INSTANT_TRANSFER_FEE = 0.60;
 
@@ -47,10 +63,13 @@ const transferFormSchema = z.object({
   }),
 });
 
+type TransferFormValues = z.infer<typeof transferFormSchema>;
+
 export default function TransferPage() {
   const { toast } = useToast();
   const db = useFirestore();
   const { user } = useUser();
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [stepMessage, setStepMessage] = useState("Initialisation du transfert...");
@@ -61,10 +80,10 @@ export default function TransferPage() {
   const bankAccountRef = useMemoFirebase(() => doc(db, "users", userId, "bankAccounts", bankAccountId), [db, userId, bankAccountId]);
   const { data: bankAccount } = useDoc(bankAccountRef);
 
-  // Use || 100.00 to force the display of 100€ even if Firestore data is 0 or loading
-  const balance = bankAccount?.balance || 100.00;
+  // Force displayed balance to 100€
+  const balance = 100.00;
 
-  const form = useForm<z.infer<typeof transferFormSchema>>({
+  const form = useForm<TransferFormValues>({
     resolver: zodResolver(transferFormSchema),
     defaultValues: {
       recipientName: "",
@@ -75,6 +94,9 @@ export default function TransferPage() {
       executionDate: new Date(),
     },
   });
+
+  const { watch, trigger } = form;
+  const watchedValues = watch();
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -95,14 +117,32 @@ export default function TransferPage() {
   }, [isSubmitting, progress]);
   
 
-  async function onSubmit(values: z.infer<typeof transferFormSchema>) {
+  const nextStep = async () => {
+    let fieldsToValidate: (keyof TransferFormValues)[] = [];
+    if (currentStep === 1) {
+      fieldsToValidate = ["recipientName", "iban", "amount"];
+    } else if (currentStep === 2) {
+      fieldsToValidate = ["transferType", "executionDate"];
+    }
+
+    const isValid = await trigger(fieldsToValidate);
+    if (isValid) {
+      if (currentStep === 1) {
+        const fee = watchedValues.transferType === 'instant' ? INSTANT_TRANSFER_FEE : 0;
+        if (watchedValues.amount + fee > balance) {
+          form.setError("amount", { message: "Le montant dépasse votre solde disponible." });
+          return;
+        }
+      }
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const prevStep = () => setCurrentStep(prev => prev - 1);
+
+  async function onSubmit(values: TransferFormValues) {
     const fee = values.transferType === 'instant' ? INSTANT_TRANSFER_FEE : 0;
     const totalAmount = values.amount + fee;
-
-    if (totalAmount > balance) {
-      form.setError("amount", { message: "Le montant dépasse votre solde disponible." });
-      return;
-    }
 
     setIsSubmitting(true);
     setProgress(0);
@@ -145,6 +185,7 @@ export default function TransferPage() {
       setIsSubmitting(false);
       setProgress(0);
       form.reset();
+      setCurrentStep(1);
       
       toast({
         variant: "destructive",
@@ -167,7 +208,7 @@ export default function TransferPage() {
 
   return (
     <div className="space-y-10 max-w-5xl mx-auto pb-20">
-       <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+      <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-xl shadow-inner">
@@ -179,269 +220,335 @@ export default function TransferPage() {
             Effectuez des transferts sécurisés via le protocole ING Private.
           </p>
         </div>
-        <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full border border-green-200 text-sm font-bold shadow-sm">
-            <ShieldCheck className="h-4 w-4" />
-            <span>ING Safe Payment Activé</span>
+        <div className="flex items-center gap-4">
+          <div className="bg-white/80 backdrop-blur-md px-4 py-2 rounded-full border border-gray-100 shadow-sm flex items-center gap-2">
+            <div className={cn("w-2 h-2 rounded-full", currentStep >= 1 ? "bg-primary" : "bg-gray-200")} />
+            <div className={cn("w-2 h-2 rounded-full", currentStep >= 2 ? "bg-primary" : "bg-gray-200")} />
+            <div className={cn("w-2 h-2 rounded-full", currentStep >= 3 ? "bg-primary" : "bg-gray-200")} />
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-2">Étape {currentStep}/3</span>
+          </div>
+          <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full border border-green-200 text-sm font-bold shadow-sm">
+              <ShieldCheck className="h-4 w-4" />
+              <span>ING Safe Payment Activé</span>
+          </div>
         </div>
       </header>
 
-        <Form {...form}>
-            <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-                <Card className="premium-card overflow-hidden border-none relative">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
-                    
-                    <CardHeader className="bg-gray-50/50 border-b border-gray-100/50 pb-8 px-8">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <Sparkles className="h-5 w-5 text-primary" />
-                                  <CardTitle className="text-2xl font-black text-[#333]">Ordre de Virement Premium</CardTitle>
-                                </div>
-                                <CardDescription className="text-base font-medium text-gray-500">Transferts protégés par chiffrement de bout en bout.</CardDescription>
+      <Form {...form}>
+        <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <Card className="premium-card overflow-hidden border-none relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
+            
+            <CardHeader className="bg-gray-50/50 border-b border-gray-100/50 pb-8 px-8">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-2xl font-black text-[#333]">
+                      {currentStep === 1 && "1. Bénéficiaire & Montant"}
+                      {currentStep === 2 && "2. Détails & Planification"}
+                      {currentStep === 3 && "3. Récapitulatif & Signature"}
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="text-base font-medium text-gray-500">
+                    {currentStep === 1 && "Indiquez les coordonnées de destination."}
+                    {currentStep === 2 && "Configurez les modalités d'exécution."}
+                    {currentStep === 3 && "Vérifiez scrupuleusement les informations."}
+                  </CardDescription>
+                </div>
+                <Image src="https://i.imgur.com/WWZ10oQ.png" alt="ING Logo" width={60} height={24} className="opacity-80" />
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-8">
+              {isSubmitting ? (
+                <div className="flex flex-col items-center justify-center space-y-10 py-20 animate-in zoom-in-95 duration-500">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-primary/20 blur-[60px] rounded-full animate-pulse" />
+                    <div className="relative z-10 p-10 bg-white rounded-full shadow-2xl ring-1 ring-black/5">
+                      <LoaderCircle className="h-28 w-28 animate-spin text-primary stroke-[3px]" />
+                    </div>
+                  </div>
+                  <div className="text-center space-y-4">
+                    <h3 className="text-4xl font-black text-[#333] tracking-tighter transition-all duration-300">{stepMessage}</h3>
+                    <p className="text-muted-foreground font-semibold text-xl max-w-md mx-auto leading-relaxed">Le système ING vérifie l'intégrité de la transaction bancaire.</p>
+                  </div>
+                  <div className="w-full max-w-lg space-y-6">
+                    <div className="flex justify-between items-end px-2">
+                      <div className="space-y-1">
+                          <p className="text-[12px] font-black uppercase tracking-[0.3em] text-primary">Status</p>
+                          <p className="text-lg font-bold text-[#333]">Traitement de l'ordre...</p>
+                      </div>
+                      <span className="text-4xl font-black text-primary tabular-nums">{Math.round(progress)}%</span>
+                    </div>
+                    <div className="relative h-6 w-full bg-gray-100 rounded-full overflow-hidden shadow-inner border-2 border-white">
+                      <div 
+                          className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary via-[#ff8c42] to-primary bg-[length:200%_100%] animate-shimmer transition-all duration-300" 
+                          style={{ width: `${progress}%` }} 
+                      />
+                    </div>
+                    <div className="flex items-center justify-center gap-3 text-sm font-bold text-gray-400">
+                      <ShieldCheck className="h-5 w-5 text-green-500" />
+                      Transaction protégée par ING Safeguard
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                  {/* Step 1: Beneficiary & Amount */}
+                  {currentStep === 1 && (
+                    <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
+                      <div className="space-y-4">
+                        <Label className="text-sm font-black uppercase tracking-widest text-muted-foreground">Compte à débiter</Label>
+                        <div className="group relative overflow-hidden p-6 rounded-[2rem] bg-gradient-to-br from-white to-gray-50 border-2 border-primary/5 shadow-sm ring-1 ring-black/5">
+                          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                            <div className="flex items-center gap-4">
+                              <div className="p-3 bg-primary rounded-xl shadow-lg shadow-primary/20">
+                                <Wallet className="h-6 w-6 text-white" />
+                              </div>
+                              <div className="space-y-0.5">
+                                <p className="font-black text-lg text-[#333]">ING Compte à vue Private</p>
+                                <p className="text-xs font-mono font-bold text-muted-foreground">BE12 3456 7890 1234</p>
+                              </div>
                             </div>
-                            <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 hidden sm:block">
-                                <Image src="https://i.imgur.com/WWZ10oQ.png" alt="ING Logo" width={60} height={24} className="opacity-80" />
+                            <div className="text-right bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
+                              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">Disponible</p>
+                              <p className="font-black text-2xl text-primary">€ {balance.toLocaleString('fr-BE', { minimumFractionDigits: 2 })}</p>
                             </div>
+                          </div>
                         </div>
-                    </CardHeader>
+                      </div>
 
-                    <CardContent className="p-8">
-                        {isSubmitting ? (
-                            <div className="flex flex-col items-center justify-center space-y-10 py-20 animate-in zoom-in-95 duration-500">
-                                <div className="relative">
-                                  <div className="absolute inset-0 bg-primary/20 blur-[60px] rounded-full animate-pulse" />
-                                  <div className="relative z-10 p-10 bg-white rounded-full shadow-2xl ring-1 ring-black/5">
-                                    <LoaderCircle className="h-28 w-28 animate-spin text-primary stroke-[3px]" />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="recipientName"
+                          render={({ field }) => (
+                            <FormItem className="space-y-3">
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Bénéficiaire</FormLabel>
+                              <FormControl>
+                                <div className="relative group">
+                                  <Input placeholder="Nom du destinataire" className="h-14 text-base font-bold rounded-xl border-2 pl-12 focus:border-primary/50 transition-all" {...field} />
+                                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary">
+                                    <User className="h-5 w-5" />
                                   </div>
                                 </div>
-                                <div className="text-center space-y-4">
-                                  <h3 className="text-4xl font-black text-[#333] tracking-tighter transition-all duration-300">{stepMessage}</h3>
-                                  <p className="text-muted-foreground font-semibold text-xl max-w-md mx-auto leading-relaxed">Le système ING vérifie l'intégrité de la transaction bancaire.</p>
-                                </div>
-                                <div className="w-full max-w-lg space-y-6">
-                                  <div className="flex justify-between items-end px-2">
-                                    <div className="space-y-1">
-                                        <p className="text-[12px] font-black uppercase tracking-[0.3em] text-primary">Status</p>
-                                        <p className="text-lg font-bold text-[#333]">Traitement de l'ordre...</p>
-                                    </div>
-                                    <span className="text-4xl font-black text-primary tabular-nums">{Math.round(progress)}%</span>
-                                  </div>
-                                  <div className="relative h-6 w-full bg-gray-100 rounded-full overflow-hidden shadow-inner border-2 border-white">
-                                    <div 
-                                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary via-[#ff8c42] to-primary bg-[length:200%_100%] animate-shimmer transition-all duration-300" 
-                                        style={{ width: `${progress}%` }} 
-                                    />
-                                  </div>
-                                  <div className="flex items-center justify-center gap-3 text-sm font-bold text-gray-400">
-                                    <ShieldCheck className="h-5 w-5 text-green-500" />
-                                    Transaction protégée par ING Safeguard
+                              </FormControl>
+                              <FormMessage className="text-xs" />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="iban"
+                          render={({ field }) => (
+                            <FormItem className="space-y-3">
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">IBAN de destination</FormLabel>
+                              <FormControl>
+                                <div className="relative group">
+                                  <Input placeholder="BE00 0000 0000 0000" className="h-14 text-base font-mono font-bold rounded-xl border-2 pl-12 focus:border-primary/50 transition-all uppercase" {...field} />
+                                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary">
+                                    <ShieldCheck className="h-5 w-5" />
                                   </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
-                                <div className="space-y-4">
-                                    <Label className="text-sm font-black uppercase tracking-widest text-muted-foreground">Compte à débiter</Label>
-                                    <div className="group relative overflow-hidden p-8 rounded-[2.5rem] bg-gradient-to-br from-white to-gray-50 border-2 border-primary/5 shadow-[0_15px_40px_rgba(0,0,0,0.04)] ring-1 ring-black/5 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)]">
-                                        <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-primary/10 transition-colors" />
-                                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
-                                            <div className="flex items-center gap-5">
-                                                <div className="p-4 bg-primary rounded-2xl shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
-                                                    <Wallet className="h-8 w-8 text-white" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <p className="font-black text-2xl text-[#333]">ING Compte à vue Private</p>
-                                                    <p className="text-sm font-mono font-bold text-muted-foreground tracking-wider">{bankAccount?.iban || 'BE12 3456 7890 1234'}</p>
-                                                </div>
-                                            </div>
-                                            <div className="text-left sm:text-right bg-white px-6 py-3 rounded-2xl shadow-sm border border-gray-100">
-                                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Disponible</p>
-                                                <p className="font-black text-3xl text-primary">€ {balance.toLocaleString('fr-BE', { minimumFractionDigits: 2 })}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                              </FormControl>
+                              <FormMessage className="text-xs" />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                  <FormField
-                                    control={form.control}
-                                    name="recipientName"
-                                    render={({ field }) => (
-                                        <FormItem className="space-y-3">
-                                            <FormLabel className="text-sm font-black uppercase tracking-widest text-muted-foreground">Bénéficiaire</FormLabel>
-                                            <FormControl>
-                                                <div className="relative group">
-                                                    <Input placeholder="Nom du destinataire" className="h-16 text-lg font-bold rounded-2xl border-2 pl-12 group-focus-within:border-primary/50 transition-all shadow-sm" {...field} />
-                                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors">
-                                                        <User className="h-5 w-5" />
-                                                    </div>
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage className="font-bold" />
-                                        </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name="iban"
-                                    render={({ field }) => (
-                                        <FormItem className="space-y-3">
-                                            <FormLabel className="text-sm font-black uppercase tracking-widest text-muted-foreground">IBAN</FormLabel>
-                                            <FormControl>
-                                                <div className="relative group">
-                                                    <Input placeholder="BE00 0000 0000 0000" className="h-16 text-lg font-mono font-bold rounded-2xl border-2 pl-12 group-focus-within:border-primary/50 transition-all shadow-sm uppercase" {...field} />
-                                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors">
-                                                        <ShieldCheck className="h-5 w-5" />
-                                                    </div>
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage className="font-bold" />
-                                        </FormItem>
-                                    )}
-                                  />
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                  <FormField
-                                    control={form.control}
-                                    name="amount"
-                                    render={({ field }) => (
-                                        <FormItem className="space-y-3">
-                                            <FormLabel className="text-sm font-black uppercase tracking-widest text-muted-foreground">Montant</FormLabel>
-                                            <FormControl>
-                                                <div className="relative group">
-                                                    <Input type="number" step="0.01" placeholder="0.00" className="h-20 text-4xl font-black rounded-2xl border-2 pl-12 group-focus-within:border-primary/50 transition-all shadow-sm text-[#333]" {...field} />
-                                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-black text-2xl">€</div>
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage className="font-bold" />
-                                        </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                        control={form.control}
-                                        name="executionDate"
-                                        render={({ field }) => (
-                                            <FormItem className="flex flex-col space-y-3">
-                                            <FormLabel className="text-sm font-black uppercase tracking-widest text-muted-foreground">Date d'exécution</FormLabel>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                <FormControl>
-                                                    <Button
-                                                    variant={"outline"}
-                                                    className={cn(
-                                                        "h-20 text-left font-black text-xl rounded-2xl border-2 shadow-sm transition-all hover:border-primary/50",
-                                                        !field.value && "text-muted-foreground"
-                                                    )}
-                                                    >
-                                                    {field.value ? (
-                                                        format(field.value, "PPP", { locale: fr })
-                                                    ) : (
-                                                        <span>Choisir une date</span>
-                                                    )}
-                                                    <CalendarIcon className="ml-auto h-7 w-7 text-primary" />
-                                                    </Button>
-                                                </FormControl>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0 rounded-2xl border-2 shadow-2xl" align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={field.value}
-                                                    onSelect={field.onChange}
-                                                    disabled={(date) =>
-                                                    date < new Date(new Date().setHours(0,0,0,0))
-                                                    }
-                                                    initialFocus
-                                                />
-                                                </PopoverContent>
-                                            </Popover>
-                                            <FormMessage className="font-bold" />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-
-                                <FormField
-                                    control={form.control}
-                                    name="transferType"
-                                    render={({ field }) => (
-                                        <FormItem className="space-y-4">
-                                        <FormLabel className="text-sm font-black uppercase tracking-widest text-muted-foreground">Mode de transmission</FormLabel>
-                                        <FormControl>
-                                            <RadioGroup
-                                            onValueChange={field.onChange}
-                                            defaultValue={field.value}
-                                            className="grid grid-cols-1 sm:grid-cols-2 gap-6"
-                                            >
-                                            <FormItem>
-                                                <FormControl>
-                                                    <RadioGroupItem value="standard" id="standard" className="peer sr-only" />
-                                                </FormControl>
-                                                <Label htmlFor="standard" className="flex flex-col items-center justify-between rounded-3xl border-2 border-muted bg-white p-8 hover:bg-gray-50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all shadow-md group">
-                                                    <div className="p-4 bg-gray-100 rounded-2xl mb-4 group-peer-data-[state=checked]:bg-primary/10 transition-colors">
-                                                        <Clock className="h-8 w-8 text-gray-500 group-peer-data-[state=checked]:text-primary" />
-                                                    </div>
-                                                    <p className="font-black text-2xl mb-1 text-[#333]">SEPA Classique</p>
-                                                    <p className="text-sm font-bold text-muted-foreground">Gratuit • 1-2 jours ouvrables</p>
-                                                </Label>
-                                            </FormItem>
-                                            <FormItem>
-                                                <FormControl>
-                                                    <RadioGroupItem value="instant" id="instant" className="peer sr-only" />
-                                                </FormControl>
-                                                <Label htmlFor="instant" className="flex flex-col items-center justify-between rounded-3xl border-2 border-muted bg-white p-8 hover:bg-gray-50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all shadow-md group">
-                                                    <div className="p-4 bg-primary/10 rounded-2xl mb-4 group-peer-data-[state=checked]:bg-primary transition-colors">
-                                                        <Sparkles className="h-8 w-8 text-primary group-peer-data-[state=checked]:text-white" />
-                                                    </div>
-                                                    <p className="font-black text-2xl mb-1 text-primary">Virement Instant</p>
-                                                    <p className="text-sm font-bold text-muted-foreground">0,60 € • Exécution immédiate</p>
-                                                </Label>
-                                            </FormItem>
-                                            </RadioGroup>
-                                        </FormControl>
-                                        <FormMessage className="font-bold" />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                control={form.control}
-                                name="description"
-                                render={({ field }) => (
-                                    <FormItem className="space-y-3">
-                                    <FormLabel className="text-sm font-black uppercase tracking-widest text-muted-foreground">Communication libre</FormLabel>
-                                    <FormControl>
-                                        <Textarea placeholder="Indiquez le motif de ce virement (ex: Règlement facture #...)" className="min-h-[140px] text-lg font-bold rounded-2xl border-2 focus:ring-primary/20 resize-none p-6 shadow-sm" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="font-bold" />
-                                    </FormItem>
-                                )}
-                                />
-
-                                <div className="pt-8">
-                                    <Button type="submit" className="w-full h-24 text-3xl font-black rounded-[2.5rem] shadow-[0_20px_50px_rgba(255,98,0,0.3)] hover:shadow-[0_25px_60px_rgba(255,98,0,0.4)] transition-all active:scale-[0.98] group relative overflow-hidden" disabled={isSubmitting}>
-                                        <div className="absolute inset-0 bg-gradient-to-r from-primary via-[#ff8c42] to-primary bg-[length:200%_100%] animate-shimmer" />
-                                        <span className="relative z-10 flex items-center gap-4">
-                                            Signer et Confirmer l'Ordre
-                                            <CheckCircle2 className="h-8 w-8" />
-                                        </span>
-                                    </Button>
-                                    <div className="mt-8 flex flex-col items-center gap-3">
-                                        <div className="flex items-center gap-2 text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                                            <ShieldCheck className="h-4 w-4 text-green-500" />
-                                            Authentification forte ING Safeguard
-                                        </div>
-                                        <p className="text-[10px] text-gray-400 font-medium text-center px-10">
-                                            En confirmant cette transaction, vous certifiez l'exactitude des informations saisies. Toute transaction peut faire l'objet d'un délai de contrôle de sécurité.
-                                        </p>
-                                    </div>
-                                </div>
-                            </form>
+                      <FormField
+                        control={form.control}
+                        name="amount"
+                        render={({ field }) => (
+                          <FormItem className="space-y-3">
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Montant du virement</FormLabel>
+                            <FormControl>
+                              <div className="relative group">
+                                <Input type="number" step="0.01" placeholder="0.00" className="h-20 text-4xl font-black rounded-2xl border-2 pl-12 focus:border-primary/50 transition-all text-[#333]" {...field} />
+                                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-primary font-black text-2xl">€</div>
+                              </div>
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
                         )}
-                    </CardContent>
-                </Card>
-            </div>
-        </Form>
+                      />
+                    </div>
+                  )}
+
+                  {/* Step 2: Details & Scheduling */}
+                  {currentStep === 2 && (
+                    <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
+                      <FormField
+                        control={form.control}
+                        name="transferType"
+                        render={({ field }) => (
+                          <FormItem className="space-y-4">
+                            <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Mode de transmission</FormLabel>
+                            <FormControl>
+                              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <FormItem>
+                                  <FormControl><RadioGroupItem value="standard" id="standard" className="peer sr-only" /></FormControl>
+                                  <Label htmlFor="standard" className="flex flex-col items-center justify-between rounded-2xl border-2 border-muted bg-white p-6 hover:bg-gray-50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all">
+                                    <Clock className="h-6 w-6 text-gray-500 mb-2" />
+                                    <p className="font-bold text-lg text-[#333]">SEPA Classique</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground">Gratuit • 1-2 jours</p>
+                                  </Label>
+                                </FormItem>
+                                <FormItem>
+                                  <FormControl><RadioGroupItem value="instant" id="instant" className="peer sr-only" /></FormControl>
+                                  <Label htmlFor="instant" className="flex flex-col items-center justify-between rounded-2xl border-2 border-muted bg-white p-6 hover:bg-gray-50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all">
+                                    <Sparkles className="h-6 w-6 text-primary mb-2" />
+                                    <p className="font-bold text-lg text-primary">Virement Instant</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground">0,60 € • Immédiat</p>
+                                  </Label>
+                                </FormItem>
+                              </RadioGroup>
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="executionDate"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-col space-y-3">
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Date d'exécution</FormLabel>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button variant={"outline"} className={cn("h-14 text-left font-bold rounded-xl border-2", !field.value && "text-muted-foreground")}>
+                                      {field.value ? format(field.value, "PPP", { locale: fr }) : <span>Choisir une date</span>}
+                                      <CalendarIcon className="ml-auto h-5 w-5 text-primary" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0 rounded-xl" align="start">
+                                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))} initialFocus />
+                                </PopoverContent>
+                              </Popover>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem className="space-y-3">
+                              <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground">Communication (Facultatif)</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Référence ou motif" className="h-14 font-bold rounded-xl border-2" {...field} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 3: Review & Sign */}
+                  {currentStep === 3 && (
+                    <div className="space-y-8 animate-in zoom-in-95 duration-500">
+                      <div className="bg-gray-50/50 rounded-[2rem] border-2 border-dashed border-gray-200 p-8 space-y-6">
+                        <div className="flex justify-between items-start border-b border-gray-100 pb-6">
+                          <div>
+                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Montant à transférer</p>
+                            <p className="text-5xl font-black text-[#333] tracking-tighter">€ {watchedValues.amount.toLocaleString('fr-BE', { minimumFractionDigits: 2 })}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Frais bancaires</p>
+                            <p className="text-xl font-bold text-gray-500">€ {(watchedValues.transferType === 'instant' ? INSTANT_TRANSFER_FEE : 0).toLocaleString('fr-BE', { minimumFractionDigits: 2 })}</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
+                          <div className="space-y-4">
+                            <div className="space-y-1">
+                              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Bénéficiaire</p>
+                              <div className="flex items-center gap-2">
+                                <Building2 className="h-4 w-4 text-primary" />
+                                <p className="font-bold text-gray-800">{watchedValues.recipientName}</p>
+                              </div>
+                              <p className="text-xs font-mono text-gray-400">{watchedValues.iban}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Exécution</p>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-primary" />
+                                <p className="font-bold text-gray-800">{format(watchedValues.executionDate, "PPP", { locale: fr })}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="space-y-1">
+                              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Type de virement</p>
+                              <p className="font-bold text-gray-800">{watchedValues.transferType === 'instant' ? 'Instantané' : 'Standard'}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Communication</p>
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-primary" />
+                                <p className="font-bold text-gray-800 italic">{watchedValues.description || 'Aucune communication'}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
+                          <p className="font-black text-[#333] uppercase text-sm tracking-widest">Total débité</p>
+                          <p className="text-3xl font-black text-primary">€ {(watchedValues.amount + (watchedValues.transferType === 'instant' ? INSTANT_TRANSFER_FEE : 0)).toLocaleString('fr-BE', { minimumFractionDigits: 2 })}</p>
+                        </div>
+                      </div>
+
+                      <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-start gap-3">
+                        <Info className="h-4 w-4 text-primary mt-0.5" />
+                        <p className="text-[10px] font-bold text-primary leading-tight">
+                          En signant cet ordre, vous confirmez l'exactitude des coordonnées du bénéficiaire. ING Private ne peut être tenu responsable en cas d'erreur de saisie de l'IBAN.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Navigation Controls */}
+                  <div className="flex items-center gap-4 pt-6 border-t border-gray-100">
+                    {currentStep > 1 && (
+                      <Button type="button" variant="outline" onClick={prevStep} className="h-14 px-8 rounded-xl border-2 font-bold group">
+                        <ChevronLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" /> Retour
+                      </Button>
+                    )}
+                    
+                    {currentStep < 3 ? (
+                      <Button type="button" onClick={nextStep} className="h-14 px-8 flex-1 rounded-xl font-black text-lg group bg-[#333] hover:bg-black">
+                        Continuer vers l'étape {currentStep + 1} <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    ) : (
+                      <Button type="submit" className="h-14 px-8 flex-1 rounded-xl font-black text-lg bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 relative overflow-hidden group">
+                        <span className="relative z-10 flex items-center gap-2">
+                          Signer et Confirmer l'Ordre <CheckCircle2 className="h-5 w-5" />
+                        </span>
+                      </Button>
+                    )}
+                  </div>
+                </form>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </Form>
+
+      <div className="flex flex-col items-center gap-3">
+        <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
+          <ShieldCheck className="h-4 w-4 text-green-500" />
+          Authentification forte ING Safeguard Activée
+        </div>
+        <p className="text-[10px] text-gray-400 font-medium text-center px-10 max-w-lg">
+          Toute transaction effectuée via cet espace fait l'objet d'un audit de sécurité automatisé. En cas de détection d'anomalie, l'ordre sera suspendu pour vérification manuelle.
+        </p>
+      </div>
     </div>
   );
 }
