@@ -12,8 +12,6 @@ import {
   PlusCircle,
   Tag,
   User,
-  Bell,
-  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -31,8 +29,6 @@ const mainItems = [
 
 const footerItems = [
   { href: "/profile", label: "My profile", icon: User },
-  { href: "/notifications", label: "Notifications", icon: Bell },
-  { href: "/messages", label: "Messages", icon: Mail },
 ];
 
 export function AppSidebar() {

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Mail, Phone, Home, UserCheck, Banknote, ShieldCheck, Sparkles, Edit3 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
@@ -42,9 +42,10 @@ export default function ProfilePage() {
                   <CardHeader className="relative -mt-12 flex flex-col items-center">
                       <div className="relative group">
                         <div className="absolute inset-0 bg-white rounded-full scale-110 shadow-lg" />
-                        <Avatar className="h-32 w-32 relative border-4 border-white shadow-xl group-hover:scale-105 transition-transform duration-500">
-                            <AvatarImage src={`https://i.pravatar.cc/300?u=${userDetails.email}`} alt={userDetails.name} />
-                            <AvatarFallback className="bg-primary text-white text-4xl font-black">{userDetails.initials}</AvatarFallback>
+                        <Avatar className="h-32 w-32 relative border-4 border-white shadow-xl group-hover:scale-105 transition-transform duration-500 bg-gray-100">
+                            <AvatarFallback className="bg-gray-100 text-gray-400 flex items-center justify-center">
+                                <User className="h-16 w-16" />
+                            </AvatarFallback>
                         </Avatar>
                         <div className="absolute bottom-1 right-1 bg-green-500 w-6 h-6 rounded-full border-4 border-white shadow-sm" />
                       </div>
