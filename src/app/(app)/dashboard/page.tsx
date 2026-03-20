@@ -204,7 +204,7 @@ export default function DashboardPage() {
                           </Badge>
                       </TableCell>
                       <TableCell>
-                          {getStatusBadge(status)}
+                          {getStatusBadge(t.status)}
                       </TableCell>
                       <TableCell className={`text-right text-xl font-black ${t.transactionType === 'Deposit' ? 'text-green-600' : 'text-gray-900'}`}>
                           {t.transactionType === 'Deposit' ? '+' : '-'}€{t.amount.toLocaleString('fr-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
