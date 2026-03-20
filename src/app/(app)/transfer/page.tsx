@@ -38,7 +38,8 @@ import {
   Building2,
   FileText,
   Globe,
-  MapPin
+  MapPin,
+  Landmark
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
