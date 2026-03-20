@@ -1,11 +1,11 @@
-
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 
-const INACTIVITY_TIMEOUT = 60 * 1000; // 1 minute
+// Délai d'inactivité : 1 heure (60 minutes * 60 secondes * 1000 ms)
+const INACTIVITY_TIMEOUT = 3600 * 1000; 
 const PUBLIC_PATHS = ["/", "/logout", "/loading", "/register-secret"];
 
 export function AuthWrapper({ children }: { children: React.ReactNode }) {
