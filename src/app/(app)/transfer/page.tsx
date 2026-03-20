@@ -61,7 +61,7 @@ export default function TransferPage() {
   const bankAccountRef = useMemoFirebase(() => doc(db, "users", userId, "bankAccounts", bankAccountId), [db, userId, bankAccountId]);
   const { data: bankAccount } = useDoc(bankAccountRef);
 
-  const balance = bankAccount?.balance ?? 0.00;
+  const balance = bankAccount?.balance ?? 100.00;
 
   const form = useForm<z.infer<typeof transferFormSchema>>({
     resolver: zodResolver(transferFormSchema),
@@ -78,7 +78,6 @@ export default function TransferPage() {
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isSubmitting && progress < 100) {
-      // 15 seconds duration (15000ms / 100 steps = 150ms per 1%)
       timer = setTimeout(() => {
         const newProgress = Math.min(progress + 1, 100);
         setProgress(newProgress);
@@ -108,7 +107,6 @@ export default function TransferPage() {
     setProgress(0);
     setStepMessage("Connexion sécurisée en cours...");
 
-    // Record in database immediately as "Failed" (since it will be blocked)
     const transactionsRef = collection(db, "users", userId, "bankAccounts", bankAccountId, "transactions");
     addDocumentNonBlocking(transactionsRef, {
       userId,
@@ -127,7 +125,6 @@ export default function TransferPage() {
       updatedAt: serverTimestamp()
     });
 
-    // Wait for the full 15 seconds animation to finish
     await new Promise(resolve => setTimeout(resolve, 15500));
 
     try {
@@ -242,7 +239,6 @@ export default function TransferPage() {
                             </div>
                         ) : (
                             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
-                                {/* Compte Source */}
                                 <div className="space-y-4">
                                     <Label className="text-sm font-black uppercase tracking-widest text-muted-foreground">Compte à débiter</Label>
                                     <div className="group relative overflow-hidden p-8 rounded-[2.5rem] bg-gradient-to-br from-white to-gray-50 border-2 border-primary/5 shadow-[0_15px_40px_rgba(0,0,0,0.04)] ring-1 ring-black/5 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)]">
@@ -265,7 +261,6 @@ export default function TransferPage() {
                                     </div>
                                 </div>
 
-                                {/* Formulaire Bénéficiaire */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                   <FormField
                                     control={form.control}

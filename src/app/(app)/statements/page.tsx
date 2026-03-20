@@ -38,11 +38,9 @@ export default function StatementsPage() {
   const userId = user?.uid;
   const bankAccountId = account;
 
-  // Récupération des données du compte pour le solde
   const bankAccountRef = useMemoFirebase(() => userId ? doc(db, "users", userId, "bankAccounts", bankAccountId) : null, [db, userId, bankAccountId]);
   const { data: bankAccount } = useDoc(bankAccountRef);
 
-  // Récupération de l'historique des transactions
   const transactionsQuery = useMemoFirebase(() => {
     if (!userId) return null;
     return query(
@@ -56,7 +54,6 @@ export default function StatementsPage() {
   const handleDownloadPdf = () => {
     setIsGenerating(true);
     
-    // Simulation de génération sécurisée du PDF (5 secondes)
     setTimeout(() => {
       setIsGenerating(false);
       toast({
@@ -79,7 +76,7 @@ export default function StatementsPage() {
     }
   };
 
-  const balance = bankAccount?.balance ?? 0.00;
+  const balance = bankAccount?.balance ?? 100.00;
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4 space-y-10">
@@ -102,7 +99,6 @@ export default function StatementsPage() {
       </header>
 
       <div className="grid grid-cols-1 gap-10">
-        {/* Filtres de recherche */}
         <Card className="premium-card overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700">
           <CardHeader className="bg-gray-50/50 border-b border-gray-100/50 pb-8 px-8">
             <div className="flex items-center gap-2">
@@ -171,7 +167,6 @@ export default function StatementsPage() {
           </CardContent>
         </Card>
 
-        {/* Historique des transactions */}
         <Card className="border-none shadow-[0_15px_50px_rgba(0,0,0,0.04)] bg-white/90 backdrop-blur-md ring-1 ring-black/5 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
             <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100/50 pb-6 px-8">
               <div>

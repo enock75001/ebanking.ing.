@@ -88,7 +88,7 @@ export default function DashboardPage() {
     }
   };
 
-  const currentBalance = bankAccount?.balance ?? 0.00;
+  const currentBalance = bankAccount?.balance ?? 100.00;
   const displayName = userProfile?.firstName || "Bernard";
 
   return (
@@ -204,7 +204,7 @@ export default function DashboardPage() {
                           </Badge>
                       </TableCell>
                       <TableCell>
-                          {getStatusBadge(t.status)}
+                          {getStatusBadge(status)}
                       </TableCell>
                       <TableCell className={`text-right text-xl font-black ${t.transactionType === 'Deposit' ? 'text-green-600' : 'text-gray-900'}`}>
                           {t.transactionType === 'Deposit' ? '+' : '-'}€{t.amount.toLocaleString('fr-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
