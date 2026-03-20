@@ -1,10 +1,9 @@
-
 "use client";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { AuthWrapper } from "@/components/auth-wrapper";
 import { Button } from "@/components/ui/button";
-import { LogOut, Star, Menu, Wallet, Home, ArrowRightLeft, Settings, CreditCard, FileText, PlusCircle, Tag, User, Bell, Mail } from "lucide-react";
+import { LogOut, Star, Menu, Wallet, Home, ArrowRightLeft, Landmark, CreditCard, FileText, PlusCircle, Tag, User } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import Image from "next/image";
@@ -16,7 +15,7 @@ const mainItems = [
   { href: "/dashboard", label: "Home", icon: Home },
   { href: "/accounts", label: "My accounts", icon: Wallet },
   { href: "/transfer", label: "Transfer & pay", icon: ArrowRightLeft },
-  { href: "/manage-accounts", label: "Manage accounts", icon: Settings },
+  { href: "/manage-accounts", label: "RIB / Details", icon: Landmark },
   { href: "/cards", label: "Manage cards", icon: CreditCard },
   { href: "/statements", label: "Statements", icon: FileText },
   { href: "/apply", label: "Apply for products", icon: PlusCircle },

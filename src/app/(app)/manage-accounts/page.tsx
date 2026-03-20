@@ -1,127 +1,181 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { 
-  Settings, 
-  Eye, 
-  Star, 
-  Edit2, 
-  Trash2, 
-  Sparkles, 
-  Wallet,
-  CheckCircle2,
-  Lock
-} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { Copy, Download, ShieldCheck, Landmark, Printer, Share2, Info, Lock, Globe } from "lucide-react";
+import Image from "next/image";
 
 export default function ManageAccountsPage() {
-  const accounts = [
-    { id: "1", name: "ING Compte à vue Private", number: "BE12 3456 ... 1234", isPrimary: true, isVisible: true },
-    { id: "2", name: "ING Lion Deposit (Épargne)", number: "BE98 7654 ... 9876", isPrimary: false, isVisible: true },
-    { id: "3", name: "Portfolio Investissement Gold", number: "BE45 1234 ... 9012", isPrimary: false, isVisible: false },
-  ];
+    const { toast } = useToast();
+    const accountDetails = {
+        holder: "BERNARD BERLIN LEROY",
+        iban: "BE12 3456 7890 1234",
+        bic: "INGBBEBB",
+        bank: "ING Belgium SA/NV",
+        address: "Avenue Marnix 24, B-1000 Bruxelles",
+        type: "Compte à vue Private",
+        openingDate: "12/03/2012",
+        status: "Actif"
+    };
 
-  return (
-    <div className="space-y-10 max-w-5xl mx-auto">
-      <header className="space-y-2 animate-in fade-in slide-in-from-top-4 duration-500">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-xl">
-            <Settings className="h-6 w-6 text-primary" />
-          </div>
-          <h1 className="text-4xl font-extrabold tracking-tight font-headline text-[#333]">Gérer les comptes</h1>
-        </div>
-        <p className="text-muted-foreground text-lg">
-          Personnalisez l'affichage et les préférences de vos comptes Bernard Berlin Leroy.
-        </p>
-      </header>
+    const handleCopy = () => {
+        const detailsText = `Titulaire: ${accountDetails.holder}\nBanque: ${accountDetails.bank}\nIBAN: ${accountDetails.iban}\nBIC: ${accountDetails.bic}`;
+        navigator.clipboard.writeText(detailsText);
+        toast({
+            title: "Copié !",
+            description: "Les coordonnées ont été copiées dans le presse-papier.",
+        });
+    };
 
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-        {accounts.map((account) => (
-          <Card key={account.id} className="premium-card overflow-hidden border-none ring-1 ring-black/5">
-            <CardHeader className="bg-gray-50/50 border-b border-gray-100/50 pb-6 flex flex-row items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-2xl ${account.isPrimary ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-400'}`}>
-                  <Wallet className="h-6 w-6" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-xl font-bold">{account.name}</CardTitle>
-                    {account.isPrimary && <Badge variant="secondary" className="bg-primary text-white font-bold text-[10px] uppercase">Principal</Badge>}
-                  </div>
-                  <CardDescription className="font-mono">{account.number}</CardDescription>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" className="rounded-xl border-2 hover:bg-primary/5 hover:text-primary"><Edit2 className="h-4 w-4" /></Button>
-                <Button variant="outline" size="icon" className="rounded-xl border-2 text-destructive hover:bg-destructive/5"><Trash2 className="h-4 w-4" /></Button>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-8 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="flex items-center justify-between p-6 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-all hover:ring-primary/20 group">
-                  <div className="space-y-1">
-                    <Label className="font-bold text-lg flex items-center gap-2 group-hover:text-primary transition-colors">
-                      <Eye className="h-5 w-5" /> Visible sur le Dashbaord
-                    </Label>
-                    <p className="text-sm text-muted-foreground font-medium">Afficher le solde sur l'accueil.</p>
-                  </div>
-                  <Switch defaultChecked={account.isVisible} />
-                </div>
-
-                <div className="flex items-center justify-between p-6 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-all hover:ring-primary/20 group">
-                  <div className="space-y-1">
-                    <Label className="font-bold text-lg flex items-center gap-2 group-hover:text-primary transition-colors">
-                      <Star className="h-5 w-5" /> Compte favori
-                    </Label>
-                    <p className="text-sm text-muted-foreground font-medium">Prioriser pour les virements.</p>
-                  </div>
-                  <Switch defaultChecked={account.isPrimary} />
-                </div>
-              </div>
-
-              <div className="pt-4 flex flex-col sm:flex-row gap-6">
-                <div className="flex-1 space-y-2">
-                    <Label className="font-bold text-sm text-muted-foreground uppercase tracking-widest">Nom personnalisé du compte</Label>
-                    <div className="relative">
-                        <Input defaultValue={account.name} className="h-12 text-base rounded-xl border-2 pr-10" />
-                        <Sparkles className="absolute right-3 top-3.5 h-5 w-5 text-primary/30" />
+    return (
+        <div className="space-y-10 max-w-5xl mx-auto animate-in fade-in duration-700">
+            <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-primary/10 rounded-2xl shadow-inner">
+                            <Landmark className="h-8 w-8 text-primary" />
+                        </div>
+                        <h1 className="text-4xl font-extrabold tracking-tight font-headline text-[#333]">Détails du compte (RIB)</h1>
                     </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-
-        <div className="premium-card p-10 rounded-[2.5rem] bg-gradient-to-br from-[#1a1a1a] to-[#333] text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-[80px]" />
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                        <Lock className="h-8 w-8 text-primary" />
-                        <h2 className="text-3xl font-black">Sécurité des comptes</h2>
-                    </div>
-                    <p className="text-lg text-white/60 font-medium max-w-xl">
-                        Vos comptes sont protégés par le système ING Safeguard. Gérez vos limites de retrait et de paiement en un seul endroit.
+                    <p className="text-muted-foreground text-lg">
+                        Identifiants certifiés Bernard Berlin Leroy pour vos opérations nationales et internationales.
                     </p>
                 </div>
-                <Button className="h-16 px-10 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-xl shadow-xl shadow-primary/20 transition-all hover:scale-[1.05]">
-                    Gérer les limites
-                </Button>
+                <div className="flex gap-4">
+                    <Button variant="outline" className="h-12 px-6 rounded-xl border-2 font-bold hover:bg-gray-50"><Printer className="mr-2 h-5 w-5" /> Imprimer</Button>
+                    <Button className="h-12 px-6 rounded-xl font-bold shadow-xl shadow-primary/10 transition-all hover:scale-[1.05]"><Download className="mr-2 h-5 w-5" /> Télécharger PDF</Button>
+                </div>
+            </header>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <div className="lg:col-span-2 space-y-10">
+                    <Card className="premium-card border-none overflow-hidden relative ring-1 ring-black/5">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-primary" />
+                        <CardHeader className="bg-gray-50/50 pb-8 border-b border-gray-100/50 px-8 pt-8">
+                            <div className="flex justify-between items-center">
+                                <div className="space-y-1">
+                                    <CardTitle className="text-3xl font-black text-[#333]">Relevé d'Identité Bancaire</CardTitle>
+                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em]">Document Officiel • ING Private Banking</p>
+                                </div>
+                                <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
+                                    <Image src="https://i.imgur.com/WWZ10oQ.png" alt="ING Logo" width={90} height={36} className="opacity-90" />
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-8 space-y-10">
+                            <div className="grid grid-cols-1 gap-8">
+                                <div className="space-y-2 p-6 bg-gray-50 rounded-3xl border border-gray-100 shadow-inner group transition-all hover:bg-white hover:ring-1 hover:ring-primary/20">
+                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-1">Titulaire du compte</p>
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-white rounded-xl shadow-sm"><Globe className="h-5 w-5 text-primary" /></div>
+                                        <p className="text-2xl font-black text-[#333] tracking-tight">{accountDetails.holder}</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-2 p-6 bg-white rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                            <Landmark className="h-16 w-16" />
+                                        </div>
+                                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-1">Établissement Bancaire</p>
+                                        <p className="text-xl font-black text-[#333]">{accountDetails.bank}</p>
+                                        <p className="text-[11px] text-gray-400 font-medium leading-relaxed max-w-[200px]">{accountDetails.address}</p>
+                                    </div>
+                                    <div className="space-y-2 p-6 bg-white rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                            <ShieldCheck className="h-16 w-16" />
+                                        </div>
+                                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-1">Type de compte</p>
+                                        <p className="text-xl font-black text-[#333]">{accountDetails.type}</p>
+                                        <p className="text-[11px] text-green-600 font-black flex items-center gap-1.5 mt-2 bg-green-50 w-fit px-3 py-1 rounded-full border border-green-100">
+                                            <ShieldCheck className="h-3.5 w-3.5" /> Statut : {accountDetails.status}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6 pt-4">
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center px-2">
+                                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Numéro IBAN (SEPA)</p>
+                                            <Button variant="ghost" size="sm" onClick={handleCopy} className="h-8 text-xs font-black text-primary hover:bg-primary/5 rounded-lg border border-primary/10">
+                                                <Copy className="mr-2 h-3.5 w-3.5" /> Copier l'IBAN
+                                            </Button>
+                                        </div>
+                                        <div className="p-10 bg-[#333] text-white rounded-[2rem] font-mono text-3xl font-black tracking-[0.2em] shadow-2xl text-center relative group overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent pointer-events-none" />
+                                            {accountDetails.iban}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div className="space-y-3">
+                                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] px-2">Code BIC / SWIFT</p>
+                                            <div className="p-6 bg-gray-100 rounded-2xl font-mono text-xl font-black tracking-widest text-[#333] text-center border-2 border-dashed border-gray-200">
+                                                {accountDetails.bic}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] px-2">Ouverture du compte</p>
+                                            <div className="p-6 bg-gray-100 rounded-2xl font-bold text-xl text-[#333] text-center border-2 border-dashed border-gray-200">
+                                                {accountDetails.openingDate}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-10 flex flex-col items-center gap-4">
+                                <button className="flex items-center gap-3 text-base font-black text-primary hover:underline transition-all group">
+                                    <Share2 className="h-5 w-5 group-hover:rotate-12 transition-transform" />
+                                    Partager mes coordonnées en toute sécurité
+                                </button>
+                                <p className="text-[10px] text-gray-400 font-medium text-center max-w-sm">
+                                    Ce document est généré de manière sécurisée et ne doit être partagé qu'avec des tiers de confiance.
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="space-y-10">
+                    <Card className="premium-card border-none bg-gradient-to-br from-primary via-[#ff7c26] to-[#e05600] text-white p-8 rounded-[2.5rem] shadow-2xl shadow-primary/20 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+                        <div className="space-y-6 relative z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
+                                    <Lock className="h-8 w-8 text-white" />
+                                </div>
+                                <h3 className="text-2xl font-black tracking-tight">ING Safeguard</h3>
+                            </div>
+                            <p className="text-base font-medium text-white/90 leading-relaxed">
+                                Vos coordonnées bancaires sont protégées par le chiffrement ING. Pour toute opération suspecte, contactez immédiatement votre conseiller.
+                            </p>
+                            <Button className="w-full bg-white text-primary font-black h-12 rounded-xl text-sm uppercase tracking-widest shadow-lg hover:bg-gray-50">
+                                Paramètres Sécurité
+                            </Button>
+                        </div>
+                    </Card>
+
+                    <Card className="p-8 rounded-[2.5rem] bg-white border border-gray-100 flex flex-col items-center text-center space-y-6 shadow-sm">
+                        <div className="p-5 bg-gray-50 rounded-3xl border border-gray-100">
+                            <Info className="h-10 w-10 text-gray-300" />
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-xs font-black text-[#333] uppercase tracking-[0.2em]">Assistance Private</p>
+                            <p className="text-[12px] text-muted-foreground leading-relaxed px-4">
+                                Une question sur vos virements internationaux ? Votre conseiller est disponible du lundi au vendredi.
+                            </p>
+                        </div>
+                        <Button variant="link" className="text-primary font-black text-sm p-0 h-auto">Nous contacter</Button>
+                    </Card>
+
+                    <div className="p-6 rounded-3xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-center bg-gray-50/30">
+                        <Image src="https://i.imgur.com/WWZ10oQ.png" alt="ING Logo" width={60} height={24} className="opacity-30 mb-2 grayscale" />
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">ING Belgium SA/NV © 2024</p>
+                    </div>
+                </div>
             </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function Badge({ children, className, variant }: { children: React.ReactNode, className?: string, variant?: any }) {
-    return (
-        <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest border border-transparent inline-flex items-center ${className}`}>
-            {children}
-        </span>
     );
 }
