@@ -63,7 +63,7 @@ export default function AccountsPage() {
     id: acc.id,
     name: acc.name || "ING Compte à vue Private",
     number: acc.iban || acc.accountNumber,
-    balance: acc.balance,
+    balance: acc.balance ?? 100.00,
   })) : staticAccounts;
 
   const totalWealth = accounts.reduce((acc, curr) => acc + curr.balance, 0);
