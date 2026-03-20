@@ -144,7 +144,6 @@ export default function TransactionDetailsPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* REÇU OFFICIEL COMPLET */}
         <div className="lg:col-span-2 space-y-10">
           <Card className="premium-card border-none overflow-hidden relative shadow-[0_40px_80px_-15px_rgba(0,0,0,0.12)]">
             <div className="absolute top-0 left-0 w-full h-4 bg-primary" />
@@ -166,7 +165,6 @@ export default function TransactionDetailsPage() {
             </CardHeader>
 
             <CardContent className="p-0">
-              {/* Montant Central */}
               <div className="p-12 text-center bg-white relative">
                 <div className="absolute inset-0 bg-primary/5 blur-[80px] opacity-30 pointer-events-none" />
                 <div className="relative z-10 space-y-2">
@@ -182,14 +180,12 @@ export default function TransactionDetailsPage() {
 
               <Separator className="bg-gray-100" />
 
-              {/* Détails Émetteur & Bénéficiaire */}
               <div className="p-12 space-y-12">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                  {/* Émetteur */}
                   <div className="space-y-6">
-                    <p className="text-[11px] font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
+                    <div className="text-[11px] font-black text-primary uppercase tracking-[0.3em] flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-primary" /> Donneur d'Ordre
-                    </p>
+                    </div>
                     <div className="p-6 bg-gray-50 rounded-[2.5rem] border border-gray-100 shadow-inner space-y-4">
                       <div className="flex items-center gap-4">
                         <div className="p-3 bg-white rounded-2xl shadow-sm"><User className="h-6 w-6 text-primary" /></div>
@@ -205,11 +201,10 @@ export default function TransactionDetailsPage() {
                     </div>
                   </div>
 
-                  {/* Bénéficiaire COMPLET */}
                   <div className="space-y-6">
-                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.3em] flex items-center gap-2">
+                    <div className="text-[11px] font-black text-gray-400 uppercase tracking-[0.3em] flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-gray-300" /> Destinataire
-                    </p>
+                    </div>
                     <div className="p-6 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm space-y-4 group hover:shadow-md transition-all">
                       <div className="flex items-center gap-4">
                         <div className="p-3 bg-gray-50 rounded-2xl"><Building2 className="h-6 w-6 text-gray-500" /></div>
@@ -243,7 +238,6 @@ export default function TransactionDetailsPage() {
 
                 <Separator className="bg-gray-100/50" />
 
-                {/* Détails Exécution */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-3">
                     <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.3em]">Planification Temporelle</p>
@@ -265,7 +259,6 @@ export default function TransactionDetailsPage() {
                 </div>
               </div>
 
-              {/* RECAPITULATIF FINANCIER SOMBRE */}
               <div className="bg-gray-900 text-white p-12 rounded-b-[2.5rem] relative overflow-hidden">
                 <div className="absolute bottom-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
                 <div className="flex flex-col md:flex-row justify-between items-center gap-10 relative z-10">
@@ -292,7 +285,6 @@ export default function TransactionDetailsPage() {
           </Card>
         </div>
 
-        {/* SIDEBAR D'AUDIT & ACTIONS */}
         <div className="space-y-8 sticky top-24">
           <Card className="premium-card border-none overflow-hidden ring-1 ring-black/5">
             <CardHeader className="bg-gray-50/50 pb-8 border-b border-gray-100/50">
