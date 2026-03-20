@@ -15,47 +15,57 @@ import {
   Briefcase
 } from "lucide-react";
 import Link from "next/link";
-
-const accounts = [
-  {
-    id: "1",
-    name: "ING Compte à vue Private",
-    number: "BE12 3456 7890 1234",
-    balance: 0.00,
-    type: "Courant",
-    status: "Actif",
-    icon: Wallet,
-    color: "text-orange-600",
-    bg: "bg-orange-50",
-    glow: "shadow-[0_0_30px_rgba(255,98,0,0.15)]"
-  },
-  {
-    id: "2",
-    name: "ING Lion Deposit (Épargne)",
-    number: "BE98 7654 3210 9876",
-    balance: 0.00,
-    type: "Épargne",
-    status: "Actif",
-    icon: PiggyBank,
-    color: "text-green-600",
-    bg: "bg-green-50",
-    glow: "shadow-[0_0_30px_rgba(34,197,94,0.1)]"
-  },
-  {
-    id: "3",
-    name: "Portfolio Investissement Gold",
-    number: "BE45 1234 5678 9012",
-    balance: 0.00,
-    type: "Investissement",
-    status: "Actif",
-    icon: Briefcase,
-    color: "text-purple-600",
-    bg: "bg-purple-50",
-    glow: "shadow-[0_0_30px_rgba(147,51,234,0.1)]"
-  }
-];
+import { useFirestore, useUser, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, where } from "firebase/firestore";
 
 export default function AccountsPage() {
+  const db = useFirestore();
+  const { user } = useUser();
+  const userId = user?.uid;
+
+  const accountsQuery = useMemoFirebase(() => {
+    if (!userId) return null;
+    return collection(db, "users", userId, "bankAccounts");
+  }, [db, userId]);
+
+  const { data: dbAccounts, isLoading } = useCollection(accountsQuery);
+
+  // Fallback data if DB is empty or loading
+  const staticAccounts = [
+    {
+      id: "1",
+      name: "ING Compte à vue Private",
+      number: "BE12 3456 7890 1234",
+      balance: 100.00,
+      type: "Courant",
+      status: "Actif",
+      icon: Wallet,
+      color: "text-orange-600",
+      bg: "bg-orange-50",
+      glow: "shadow-[0_0_30px_rgba(255,98,0,0.15)]"
+    },
+    {
+      id: "2",
+      name: "ING Lion Deposit (Épargne)",
+      number: "BE98 7654 3210 9876",
+      balance: 0.00,
+      type: "Épargne",
+      status: "Actif",
+      icon: PiggyBank,
+      color: "text-green-600",
+      bg: "bg-green-50",
+      glow: "shadow-[0_0_30px_rgba(34,197,94,0.1)]"
+    }
+  ];
+
+  const accounts = dbAccounts && dbAccounts.length > 0 ? dbAccounts.map(acc => ({
+    ...staticAccounts.find(s => s.id === "1")!, // base styles
+    id: acc.id,
+    name: acc.name || "ING Compte à vue Private",
+    number: acc.iban || acc.accountNumber,
+    balance: acc.balance,
+  })) : staticAccounts;
+
   const totalWealth = accounts.reduce((acc, curr) => acc + curr.balance, 0);
 
   return (
@@ -80,16 +90,16 @@ export default function AccountsPage() {
 
       <div className="grid grid-cols-1 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
         {accounts.map((account) => (
-          <Card key={account.id} className={`premium-card group overflow-hidden border-none relative ${account.glow}`}>
+          <Card key={account.id} className={`premium-card group overflow-hidden border-none relative ${account.glow || ""}`}>
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none group-hover:bg-primary/10 transition-all duration-700" />
             
             <div className="flex flex-col lg:flex-row">
-              <div className={`${account.bg} p-8 lg:w-72 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-gray-100/50 transition-colors duration-500 group-hover:bg-white`}>
+              <div className={`${account.bg || "bg-orange-50"} p-8 lg:w-72 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-gray-100/50 transition-colors duration-500 group-hover:bg-white`}>
                 <div className="p-6 bg-white rounded-[2rem] shadow-lg ring-1 ring-black/5 group-hover:scale-110 transition-transform duration-500">
-                  <account.icon className={`h-12 w-12 ${account.color}`} />
+                  {account.icon ? <account.icon className={`h-12 w-12 ${account.color}`} /> : <Wallet className="h-12 w-12 text-orange-600" />}
                 </div>
                 <Badge variant="outline" className={`mt-6 font-bold uppercase tracking-widest px-4 py-1 rounded-full bg-green-50 text-green-600 border-green-200`}>
-                  {account.status}
+                  {account.status || "Actif"}
                 </Badge>
               </div>
 
