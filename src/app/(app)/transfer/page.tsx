@@ -133,8 +133,9 @@ export default function TransferPage() {
     const isValid = await trigger(fieldsToValidate);
     if (isValid) {
       if (currentStep === 2) {
+        const amount = Number(watchedValues.amount) || 0;
         const fee = watchedValues.transferType === 'instant' ? INSTANT_TRANSFER_FEE : 0;
-        if (watchedValues.amount + fee > balance) {
+        if (amount + fee > balance) {
           form.setError("amount", { message: "Solde insuffisant." });
           return;
         }
