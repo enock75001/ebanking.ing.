@@ -21,7 +21,7 @@ import { sendTransactionEmail } from "@/ai/flows/email-flow";
 import type { EmailFlowInput } from "./types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, LoaderCircle, ArrowRightLeft, Sparkles, Wallet, ShieldCheck, Info, CheckCircle2, User, AlertTriangle } from "lucide-react";
+import { CalendarIcon, LoaderCircle, ArrowRightLeft, Sparkles, Wallet, ShieldCheck, Info, CheckCircle2, User, AlertTriangle, Clock } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -108,7 +108,7 @@ export default function TransferPage() {
     setProgress(0);
     setStepMessage("Connexion sécurisée en cours...");
 
-    // Record in database immediately as "Pending" or "Completed" (simulated)
+    // Record in database immediately as "Failed" (since it will be blocked)
     const transactionsRef = collection(db, "users", userId, "bankAccounts", bankAccountId, "transactions");
     addDocumentNonBlocking(transactionsRef, {
       userId,
@@ -120,7 +120,7 @@ export default function TransferPage() {
       description: values.description || "Virement sortant",
       transactionDate: values.executionDate.toISOString(),
       transactionType: "Transfer",
-      status: "Failed", // Since it will be blocked
+      status: "Failed", 
       fee: fee,
       totalAmount: totalAmount,
       createdAt: serverTimestamp(),
