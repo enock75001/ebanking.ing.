@@ -10,6 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const mainItems = [
   { href: "/dashboard", label: "Home", icon: Home },
@@ -29,6 +30,7 @@ export default function AppLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
   const handleLogout = () => {
@@ -36,12 +38,23 @@ export default function AppLayout({
     router.replace("/logout");
   };
 
+  const showUnderConstruction = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast({
+      title: "En cours de construction",
+      description: "Cette fonctionnalité sera disponible prochainement dans votre espace ING Private Banking.",
+    });
+  };
+
   return (
     <AuthWrapper>
       <div className="min-h-screen bg-background flex flex-col">
         {/* Header Desktop (Top-Right) */}
         <header className="fixed top-0 right-0 z-30 p-4 hidden lg:flex items-center gap-4 bg-transparent pl-64 w-full justify-end">
-            <button className="flex items-center gap-1 text-sm text-[#333] hover:underline">
+            <button 
+              onClick={showUnderConstruction}
+              className="flex items-center gap-1 text-sm text-[#333] hover:underline"
+            >
               <Star className="h-4 w-4 fill-primary text-primary" />
               <span>Rate us</span>
             </button>
@@ -140,11 +153,11 @@ export default function AppLayout({
         <footer className="lg:ml-64 bg-[#ff6200] text-white py-12 px-6 mt-auto">
           <div className="max-w-4xl mx-auto flex flex-col items-center gap-4">
             <div className="flex gap-6 text-sm font-bold">
-              <a href="#" className="hover:underline">Contact Us</a>
+              <a href="#" onClick={showUnderConstruction} className="hover:underline">Contact Us</a>
               <span className="opacity-50">|</span>
-              <a href="#" className="hover:underline">Privacy</a>
+              <a href="#" onClick={showUnderConstruction} className="hover:underline">Privacy</a>
               <span className="opacity-50">|</span>
-              <a href="#" className="hover:underline">Security</a>
+              <a href="#" onClick={showUnderConstruction} className="hover:underline">Security</a>
             </div>
             <p className="text-xs opacity-80 text-center">
               © ING Bank (Australia) Limited ABN 24 000 893 292. Australian Credit Licence 224000 893 292.

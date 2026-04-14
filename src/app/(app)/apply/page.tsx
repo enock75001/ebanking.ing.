@@ -2,16 +2,27 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { PlusCircle, CreditCard, Landmark, PiggyBank, ShieldCheck, Sparkles, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ApplyPage() {
+  const { toast } = useToast();
+  
   const products = [
     { title: "Comptes courants", description: "Ouvrez un nouveau compte à vue adapté à votre quotidien.", icon: Landmark, color: "text-blue-600", bg: "bg-blue-50" },
     { title: "Épargne", description: "Faites fructifier votre capital avec nos taux préférentiels.", icon: PiggyBank, color: "text-green-600", bg: "bg-green-50" },
     { title: "Cartes", description: "Demandez une nouvelle carte Gold ou Platinum en ligne.", icon: CreditCard, color: "text-purple-600", bg: "bg-purple-50" },
     { title: "Assurances", description: "Protégez votre habitation et votre famille avec ING.", icon: ShieldCheck, color: "text-orange-600", bg: "bg-orange-50" },
   ];
+
+  const showUnderConstruction = () => {
+    toast({
+      title: "En cours de construction",
+      description: "Cette fonctionnalité sera disponible prochainement dans votre espace ING Private Banking.",
+    });
+  };
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
@@ -29,7 +40,11 @@ export default function ApplyPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
         {products.map((product, index) => (
-          <Card key={product.title} className="premium-card group cursor-pointer relative overflow-hidden">
+          <Card 
+            key={product.title} 
+            onClick={showUnderConstruction}
+            className="premium-card group cursor-pointer relative overflow-hidden"
+          >
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-primary/10 transition-all duration-500" />
             <CardHeader className="flex flex-row items-center gap-6 pb-2">
               <div className={`${product.bg} p-5 rounded-2xl group-hover:scale-110 transition-transform duration-500 shadow-sm border border-white`}>
@@ -68,19 +83,14 @@ export default function ApplyPage() {
           <p className="text-xl text-white/80 max-w-2xl font-medium leading-relaxed">
             Réalisez vos projets immobiliers ou personnels avec nos solutions de financement sur-mesure. Simulation gratuite en 2 minutes.
           </p>
-          <Button className="bg-primary hover:bg-primary/90 text-white font-black text-xl h-16 px-10 rounded-2xl shadow-xl shadow-primary/20 transition-all hover:scale-[1.05] active:scale-[0.98]">
+          <Button 
+            onClick={showUnderConstruction}
+            className="bg-primary hover:bg-primary/90 text-white font-black text-xl h-16 px-10 rounded-2xl shadow-xl shadow-primary/20 transition-all hover:scale-[1.05] active:scale-[0.98]"
+          >
             Simuler mon projet
           </Button>
         </div>
       </div>
     </div>
   );
-}
-
-function Badge({ children, className }: { children: React.ReactNode, className?: string }) {
-    return (
-        <span className={cn("px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest", className)}>
-            {children}
-        </span>
-    );
 }

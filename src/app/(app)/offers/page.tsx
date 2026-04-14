@@ -4,12 +4,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tag, Gift, Star, ArrowRight, Sparkles, ChevronRight } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function OffersPage() {
+  const { toast } = useToast();
+
   const offers = [
     { title: "Bonus de bienvenue", description: "Recevez 50€ pour l'ouverture d'un compte épargne.", tag: "Nouveau", icon: Gift, color: "text-pink-600", bg: "bg-pink-50" },
     { title: "Cashback ING", description: "Récupérez jusqu'à 10% sur vos achats chez nos partenaires.", tag: "Exclusif", icon: Star, color: "text-amber-500", bg: "bg-amber-50" },
   ];
+
+  const showUnderConstruction = () => {
+    toast({
+      title: "En cours de construction",
+      description: "Cette fonctionnalité sera disponible prochainement dans votre espace ING Private Banking.",
+    });
+  };
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
@@ -27,7 +37,11 @@ export default function OffersPage() {
 
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
         {offers.map((offer) => (
-          <Card key={offer.title} className="premium-card group overflow-hidden border-none relative">
+          <Card 
+            key={offer.title} 
+            onClick={showUnderConstruction}
+            className="premium-card group overflow-hidden border-none relative cursor-pointer"
+          >
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
             <div className="flex flex-col md:flex-row">
               <div className={`${offer.bg} p-12 flex items-center justify-center relative overflow-hidden group-hover:bg-white transition-colors duration-500`}>
@@ -62,7 +76,7 @@ export default function OffersPage() {
             </div>
             <h3 className="text-2xl font-black text-[#333]">Parrainez un proche</h3>
             <p className="text-gray-600 font-medium">Offrez 80€ à vos amis et recevez 80€ en retour pour chaque compte ouvert.</p>
-            <Button variant="outline" className="h-12 px-8 font-bold border-2 rounded-xl border-primary/20 text-primary hover:bg-primary/5">Copier mon code</Button>
+            <Button variant="outline" onClick={showUnderConstruction} className="h-12 px-8 font-bold border-2 rounded-xl border-primary/20 text-primary hover:bg-primary/5">Copier mon code</Button>
         </div>
         <div className="premium-card p-8 rounded-[2rem] border-2 border-dashed border-primary/20 bg-primary/5 flex flex-col items-center text-center space-y-4">
             <div className="p-4 bg-white rounded-2xl shadow-sm ring-1 ring-black/5">
@@ -70,7 +84,7 @@ export default function OffersPage() {
             </div>
             <h3 className="text-2xl font-black text-[#333]">Ventes Privées</h3>
             <p className="text-gray-600 font-medium">Accédez à des remises exceptionnelles sur plus de 1000 boutiques en ligne.</p>
-            <Button variant="outline" className="h-12 px-8 font-bold border-2 rounded-xl border-primary/20 text-primary hover:bg-primary/5">Découvrir les ventes</Button>
+            <Button variant="outline" onClick={showUnderConstruction} className="h-12 px-8 font-bold border-2 rounded-xl border-primary/20 text-primary hover:bg-primary/5">Découvrir les ventes</Button>
         </div>
       </div>
     </div>

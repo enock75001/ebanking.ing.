@@ -26,6 +26,13 @@ export default function RibPage() {
         });
     };
 
+    const showUnderConstruction = () => {
+      toast({
+        title: "En cours de construction",
+        description: "Cette fonctionnalité sera disponible prochainement dans votre espace ING Private Banking.",
+      });
+    };
+
     return (
         <div className="space-y-8 max-w-4xl mx-auto animate-in fade-in duration-700">
             <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
@@ -100,7 +107,10 @@ export default function RibPage() {
                         </div>
 
                         <div className="pt-6 flex justify-center">
-                            <button className="flex items-center gap-2 text-sm font-bold text-primary hover:underline group">
+                            <button 
+                              onClick={showUnderConstruction}
+                              className="flex items-center gap-2 text-sm font-bold text-primary hover:underline group"
+                            >
                                 <Share2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
                                 Partager mes coordonnées en toute sécurité
                             </button>
@@ -129,7 +139,7 @@ export default function RibPage() {
                         <p className="text-[11px] text-muted-foreground leading-tight">
                             Contactez votre conseiller Private Banking pour toute question relative à vos transferts internationaux.
                         </p>
-                        <Button variant="link" className="text-primary font-black text-xs">Nous contacter</Button>
+                        <Button variant="link" onClick={showUnderConstruction} className="text-primary font-black text-xs">Nous contacter</Button>
                     </div>
                 </div>
             </div>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
@@ -72,6 +71,13 @@ export default function TransactionDetailsPage() {
         description: "Le document PDF a été enregistré.",
       });
     }, 2000);
+  };
+
+  const showUnderConstruction = () => {
+    toast({
+      title: "En cours de construction",
+      description: "Cette fonctionnalité sera disponible prochainement dans votre espace ING Private Banking.",
+    });
   };
 
   if (isLoading) {
@@ -323,17 +329,27 @@ export default function TransactionDetailsPage() {
               </div>
 
               <div className="pt-4 flex flex-col gap-3">
-                 <Button className="w-full bg-[#333] hover:bg-black text-white font-black h-14 rounded-2xl text-sm uppercase tracking-widest shadow-xl transition-all">
+                 <Button 
+                   onClick={showUnderConstruction}
+                   className="w-full bg-[#333] hover:bg-black text-white font-black h-14 rounded-2xl text-sm uppercase tracking-widest shadow-xl transition-all"
+                 >
                     Imprimer le reçu
                  </Button>
-                 <Button variant="ghost" className="font-bold text-gray-500 hover:text-primary">
+                 <Button 
+                   variant="ghost" 
+                   onClick={showUnderConstruction}
+                   className="font-bold text-gray-500 hover:text-primary"
+                 >
                     <Share2 className="mr-2 h-4 w-4" /> Partage sécurisé
                  </Button>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="p-10 rounded-[3rem] bg-gradient-to-br from-[#3b0051] to-[#2a003a] text-white space-y-6 shadow-2xl relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-all">
+          <Card 
+            onClick={showUnderConstruction}
+            className="p-10 rounded-[3rem] bg-gradient-to-br from-[#3b0051] to-[#2a003a] text-white space-y-6 shadow-2xl relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-all"
+          >
             <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl group-hover:bg-white/20 transition-all" />
             <div className="flex items-center gap-4">
               <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-xl ring-1 ring-white/30">

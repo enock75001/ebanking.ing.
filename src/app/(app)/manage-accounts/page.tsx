@@ -28,6 +28,13 @@ export default function ManageAccountsPage() {
         });
     };
 
+    const showUnderConstruction = () => {
+      toast({
+        title: "En cours de construction",
+        description: "Cette fonctionnalité sera disponible prochainement dans votre espace ING Private Banking.",
+      });
+    };
+
     return (
         <div className="space-y-10 max-w-5xl mx-auto animate-in fade-in duration-700">
             <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
@@ -126,7 +133,10 @@ export default function ManageAccountsPage() {
                             </div>
 
                             <div className="pt-10 flex flex-col items-center gap-4">
-                                <button className="flex items-center gap-3 text-base font-black text-primary hover:underline transition-all group">
+                                <button 
+                                  onClick={showUnderConstruction}
+                                  className="flex items-center gap-3 text-base font-black text-primary hover:underline transition-all group"
+                                >
                                     <Share2 className="h-5 w-5 group-hover:rotate-12 transition-transform" />
                                     Partager mes coordonnées en toute sécurité
                                 </button>
@@ -151,7 +161,10 @@ export default function ManageAccountsPage() {
                             <p className="text-base font-medium text-white/90 leading-relaxed">
                                 Vos coordonnées bancaires sont protégées par le chiffrement ING. Pour toute opération suspecte, contactez immédiatement votre conseiller.
                             </p>
-                            <Button className="w-full bg-white text-primary font-black h-12 rounded-xl text-sm uppercase tracking-widest shadow-lg hover:bg-gray-50">
+                            <Button 
+                              onClick={showUnderConstruction}
+                              className="w-full bg-white text-primary font-black h-12 rounded-xl text-sm uppercase tracking-widest shadow-lg hover:bg-gray-50"
+                            >
                                 Paramètres Sécurité
                             </Button>
                         </div>
@@ -167,7 +180,7 @@ export default function ManageAccountsPage() {
                                 Une question sur vos virements internationaux ? Votre conseiller est disponible du lundi au vendredi.
                             </p>
                         </div>
-                        <Button variant="link" className="text-primary font-black text-sm p-0 h-auto">Nous contacter</Button>
+                        <Button variant="link" onClick={showUnderConstruction} className="text-primary font-black text-sm p-0 h-auto">Nous contacter</Button>
                     </Card>
 
                     <div className="p-6 rounded-3xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-center bg-gray-50/30">

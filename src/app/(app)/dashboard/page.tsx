@@ -32,6 +32,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from "@/firebase";
 import { collection, query, orderBy, limit, doc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DashboardPage() {
   const [lastLogin, setLastLogin] = useState<string | null>(null);
@@ -39,6 +40,7 @@ export default function DashboardPage() {
   const db = useFirestore();
   const { user } = useUser();
   const router = useRouter();
+  const { toast } = useToast();
 
   const userId = user?.uid;
   const bankAccountId = "be12-3456-7890-1234";
@@ -87,7 +89,14 @@ export default function DashboardPage() {
     }
   };
 
-  const currentBalance = 0.00; // Forcer l'affichage à 0€
+  const showUnderConstruction = () => {
+    toast({
+      title: "En cours de construction",
+      description: "Cette fonctionnalité sera disponible prochainement dans votre espace ING Private Banking.",
+    });
+  };
+
+  const currentBalance = 0.00;
   const displayName = userProfile?.firstName || "Bernard";
 
   return (
@@ -153,7 +162,13 @@ export default function DashboardPage() {
                 <CardTitle className="text-2xl text-[#333] font-headline font-bold">Transactions Récentes</CardTitle>
                 <CardDescription className="text-base">Historique de vos dernières opérations bancaires.</CardDescription>
               </div>
-              <Badge variant="outline" className="text-[#ff6200] border-[#ff6200]/30 font-bold px-6 py-1.5 rounded-full hover:bg-primary/5 transition-colors cursor-pointer text-sm">Voir tout l'historique</Badge>
+              <Badge 
+                variant="outline" 
+                onClick={showUnderConstruction}
+                className="text-[#ff6200] border-[#ff6200]/30 font-bold px-6 py-1.5 rounded-full hover:bg-primary/5 transition-colors cursor-pointer text-sm"
+              >
+                Voir tout l'historique
+              </Badge>
             </CardHeader>
             <CardContent className="pt-6">
             <div className="rounded-[1.5rem] border border-gray-100/50 overflow-hidden shadow-inner bg-white/50">
