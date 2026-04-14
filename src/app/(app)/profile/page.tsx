@@ -148,7 +148,7 @@ export default function ProfilePage() {
                   <CardContent className="space-y-4">
                     <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
                         <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Membre depuis</p>
-                        <p className="font-bold text-[#333]">Mars 2026</p>
+                        <p className="font-bold text-[#333]">15 Mars 2026</p>
                     </div>
                   </CardContent>
                 </Card>

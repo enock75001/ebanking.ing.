@@ -15,7 +15,7 @@ export default function ManageAccountsPage() {
         bank: "ING Belgium SA/NV",
         address: "Avenue Marnix 24, B-1000 Bruxelles",
         type: "Compte à vue Private",
-        openingDate: "20/03/2026",
+        openingDate: "15/03/2026",
         status: "Actif"
     };
 
@@ -78,7 +78,7 @@ export default function ManageAccountsPage() {
                                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                             <Landmark className="h-16 w-16" />
                                         </div>
-                                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-1">Établissement Bancaire</p>
+                                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Établissement Bancaire</p>
                                         <p className="text-xl font-black text-[#333]">{accountDetails.bank}</p>
                                         <p className="text-[11px] text-gray-400 font-medium leading-relaxed max-w-[200px]">{accountDetails.address}</p>
                                     </div>
@@ -86,7 +86,7 @@ export default function ManageAccountsPage() {
                                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                             <ShieldCheck className="h-16 w-16" />
                                         </div>
-                                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-1">Type de compte</p>
+                                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Type de compte</p>
                                         <p className="text-xl font-black text-[#333]">{accountDetails.type}</p>
                                         <p className="text-[11px] text-green-600 font-black flex items-center gap-1.5 mt-2 bg-green-50 w-fit px-3 py-1 rounded-full border border-green-100">
                                             <ShieldCheck className="h-3.5 w-3.5" /> Statut : {accountDetails.status}
