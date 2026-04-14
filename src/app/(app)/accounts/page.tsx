@@ -30,13 +30,13 @@ export default function AccountsPage() {
 
   const { data: dbAccounts, isLoading } = useCollection(accountsQuery);
 
-  // Fallback data with 100€ balance
+  // Fallback data with 0€ balance
   const staticAccounts = [
     {
       id: "1",
       name: "ING Compte à vue Private",
       number: "BE12 3456 7890 1234",
-      balance: 100.00,
+      balance: 0.00,
       type: "Courant",
       status: "Actif",
       icon: Wallet,
@@ -58,13 +58,13 @@ export default function AccountsPage() {
     }
   ];
 
-  // We use || 100.00 to ensure that even if the DB returns 0, it displays 100
+  // We use || 0.00 to ensure that even if the DB returns 0, it displays 0
   const accounts = dbAccounts && dbAccounts.length > 0 ? dbAccounts.map(acc => ({
     ...staticAccounts.find(s => s.id === "1")!, // base styles
     id: acc.id,
     name: acc.name || "ING Compte à vue Private",
     number: acc.iban || acc.accountNumber,
-    balance: acc.balance || 100.00,
+    balance: acc.balance || 0.00,
   })) : staticAccounts;
 
   const totalWealth = accounts.reduce((acc, curr) => acc + curr.balance, 0);

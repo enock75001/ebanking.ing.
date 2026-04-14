@@ -78,7 +78,7 @@ export default function StatementsPage() {
     }
   };
 
-  const balance = 100.00; // Forcer 100€
+  const balance = 0.00; // Forcer 0€
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4 space-y-10">

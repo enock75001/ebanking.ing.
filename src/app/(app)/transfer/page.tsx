@@ -1,4 +1,3 @@
-
 "use client";
 
 import { z } from "zod";
@@ -85,7 +84,7 @@ export default function TransferPage() {
   const userId = user?.uid || "bernard-berlin-leroy";
   const bankAccountId = "be12-3456-7890-1234";
 
-  const balance = 100.00;
+  const balance = 0.00; // Solde mis à 0€
 
   const form = useForm<TransferFormValues>({
     resolver: zodResolver(transferFormSchema),

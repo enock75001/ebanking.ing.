@@ -87,7 +87,7 @@ export default function DashboardPage() {
     }
   };
 
-  const currentBalance = 100.00; // Forcer l'affichage à 100€
+  const currentBalance = 0.00; // Forcer l'affichage à 0€
   const displayName = userProfile?.firstName || "Bernard";
 
   return (
